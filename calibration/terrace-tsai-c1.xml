@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Camera name="camera1">
+  <Geometry width="720" height="576" ncx="576" nfx="576" 
+            dx="2.3e-02" dy="2.3e-02" dpx="2.3e-02" dpy="2.3e-02"/>
+
+  <Intrinsic focal="19.529144" kappa1="5.184242e-04"
+	cx="360.228130" cy="255.166919"
+	sx="1"/> 
+
+  <Extrinsic tx="-65.433635" ty="1594.811988"
+	tz="2113.640844" rx="1.9347282363e+00"
+	ry="-7.0418616982e-01" rz="-2.3783238362e-01"/>
+</Camera>
