@@ -491,14 +491,19 @@ def bundle_adjustment_so3_gt(matched_points, camera_rotation, camera_translation
                 ######################################
                 print("**************************************")
                 
-                shoulder1 = torch.norm(p1.reshape(-1, 8 ,3)[:, joint_array[0][0], :] - p1.reshape(-1, 8 ,3)[:, joint_array[0][1], :])
-                shoulder2 = torch.norm(p2.reshape(-1, 8 ,3)[:, joint_array[0][0], :] - p2.reshape(-1, 8 ,3)[:, joint_array[0][1], :])
+                shoulder1 = p1.reshape(-1, 8 ,3)[:, joint_array[0][0], :] - p1.reshape(-1, 8 ,3)[:, joint_array[0][1], :]
+                shoulder2 = p2.reshape(-1, 8 ,3)[:, joint_array[0][0], :] - p2.reshape(-1, 8 ,3)[:, joint_array[0][1], :]
+                print(shoulder1.shape, " SHOUDELR 1111")
 
-                hip1 = torch.norm(p1.reshape(-1, 8 ,3)[:, joint_array[3][0], :] - p1.reshape(-1, 8 ,3)[:, joint_array[3][1], :])
-                hip2 = torch.norm(p2.reshape(-1, 8 ,3)[:, joint_array[3][0], :] - p2.reshape(-1, 8 ,3)[:, joint_array[3][1], :])
 
-                shoulder1.retain_grad()
-                shoulder1.retain_grad()
+                hip1 = p1.reshape(-1, 8 ,3)[:, joint_array[3][0], :] - p1.reshape(-1, 8 ,3)[:, joint_array[3][1], :]
+                hip2 = p2.reshape(-1, 8 ,3)[:, joint_array[3][0], :] - p2.reshape(-1, 8 ,3)[:, joint_array[3][1], :]
+
+                #shoulder1.retain_grad()
+                #shoulder1.retain_grad()
+
+                shoulder_hip1 = torch.mean(torch.absolute(torch.norm(shoulder1, dim = 1) - torch.norm(hip1, dim = 1)))
+                shoulder_hip2 = torch.mean(torch.absolute(torch.norm(shoulder2, dim = 1) - torch.norm(hip2, dim = 1)))
 
                 hip1.retain_grad()
                 hip2.retain_grad()
@@ -508,6 +513,8 @@ def bundle_adjustment_so3_gt(matched_points, camera_rotation, camera_translation
 
                 hip_array.append(hip1)
                 hip_array.append(hip2)
+                print(shoulder_hip1, shoulder_hip2, " shoulder hip  1111")
+                #shoulder_hip1 + shoulder_hip2 + 
                 loss = w0*torch.mean(torch.norm(error, dim=-1)) + w1*torch.mean(torch.absolute(p1_min)) + w1*torch.mean(torch.absolute(p2_min)) + w2*torch.mean(torch.absolute(left_joints_norm - right_joints_norm)) + w3*torch.mean(torch.absolute(left_height_norm - h)) + w3*torch.mean(torch.absolute(right_height_norm - h))
                 #loss = torch.mean(torch.norm(error, dim=-1)) + torch.mean(torch.absolute(p1_min)) + torch.mean(torch.absolute(p2_min)) + torch.mean(torch.absolute(left_height_norm - h)) + torch.mean(torch.absolute(right_height_norm - h))
                 
@@ -519,7 +526,7 @@ def bundle_adjustment_so3_gt(matched_points, camera_rotation, camera_translation
                 
                 #loss = loss/accum_iter
                 #print(loss, " HELLOASDASDASD")
-                #loss.backward(retain_graph=True)
+                loss.backward(retain_graph=True)
                 #print(loss.grad, "LOSS GRADSSSS")
                 #print(T_matrix.grad, "T matrix GRADSSSS")
                 print(R_matrix.grad, "R matrix GRADSSSS")
@@ -538,18 +545,18 @@ def bundle_adjustment_so3_gt(matched_points, camera_rotation, camera_translation
                 den = den + 1
                 itr = itr + 1
 
-        comb_array = util.random_combination(list(range(0, len(shoulder_array))), 2, np.inf)
+        #comb_array = util.random_combination(list(range(0, len(shoulder_array))), 2, np.inf)
         
-        shoulder_error = 0 
-        hip_error = 0
-        for ca in comb_array:
-            shoulder_error =  shoulder_error + torch.absolute(shoulder_array[ca[0]] - shoulder_array[ca[1]])
-            hip_error = hip_error + torch.absolute(hip_array[ca[0]] - hip_array[ca[1]])
+        #shoulder_error = 0 
+        #hip_error = 0
+        #for ca in comb_array:
+        #    shoulder_error =  shoulder_error + torch.absolute(shoulder_array[ca[0]] - shoulder_array[ca[1]])
+        #    hip_error = hip_error + torch.absolute(hip_array[ca[0]] - hip_array[ca[1]])
 
         #shoulder_error = shoulder_error/len(shoulder_array)
         #hip_error = hip_error/len(shoulder_array)
         
-        loss = loss_array/den + shoulder_error/len(shoulder_array) + hip_error/len(shoulder_array)
+        #loss = loss_array/den# + 0.1*shoulder_error/len(shoulder_array) + 0.1*hip_error/len(shoulder_array)
         print(loss.detach().numpy().item(), itr, " Error in bundle adjustment")
         loss.backward(retain_graph=True)
         f_array = []
