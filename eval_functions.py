@@ -183,3 +183,122 @@ def evaluate(cam_intrinsics_array, cam_axis, cam_position, intrinsic_array_tsai,
             #results_focal_pred[i], results_focal_tsai[i], angle_diff[i], error_npjpe.item(), focal_error, results_position_diff[i]
     
     return np.mean(results_focal_pred_array), np.mean(results_focal_tsai_array), np.mean(angle_diff_array), np.mean(error_npjpe_array), np.mean(focal_error_array), np.mean(results_position_diff_array)
+
+def evaluate_relative(cam_intrinsics_array, cam_axis, cam_position, intrinsic_array_tsai, cam_axis_tsai, cam_position_tsai, output_path, data = 'result'):
+    
+    results_focal_pred = []
+    results_focal_tsai = []
+
+    results_extriniscs_pred = []
+    results_extriniscs_tsai = []
+
+    results_position_diff = []
+    
+    #print(cam_position)
+
+    for c in range(1, len(cam_position[0])):
+        results_position_diff.append(np.linalg.norm(cam_position[0][0] - cam_position[0][c] - (cam_position_tsai[0][0] - cam_position_tsai[0][c])))
+
+    focal_percentage = []
+
+    for c in range(len(cam_intrinsics_array)):
+        #print(len(intrinsic_array_tsai))
+        #print(len(cam_intrinsics_array), " hqwe123132")
+        cam_pred = cam_intrinsics_array[c]
+        cam_tsai = intrinsic_array_tsai[c]
+
+        #print(cam_pred, " cam pred")
+        #print(cam_tsai, " cam tsai")
+
+        results_focal_pred.append(cam_pred[0][0])
+        results_focal_tsai.append(cam_tsai[0][0])
+        focal_percentage.append(100*np.absolute(cam_pred[0][0] - cam_tsai[0][0])/cam_tsai[0][0])
+
+    rot_pred_ref = cam_axis[0]
+    rot_tsai_ref = cam_axis_tsai[0]
+
+    relative_angle_array = []
+    for c in range(1, len(cam_axis)):
+        rot_pred = cam_axis[c]
+        rot_tsai = cam_axis_tsai[c]
+
+        rotation_pred = np.linalg.inv(rot_pred_ref) @ rot_pred
+        rotation_tsai = np.linalg.inv(rot_tsai_ref) @ rot_tsai
+
+        pred_angle = np.rad2deg(np.arccos((np.trace(rotation_pred)-1)/2))
+        tsai_angle = np.rad2deg(np.arccos((np.trace(rotation_tsai)-1)/2))
+        print("*************************************")
+        print(np.absolute(pred_angle - tsai_angle), pred_angle, tsai_angle, " PREDICTED DIFF, pred, tsai")
+
+        results_extriniscs_pred.append(pred_angle)
+        results_extriniscs_tsai.append(tsai_angle)
+
+        relative_angle_array.append(np.absolute(pred_angle - tsai_angle))
+        
+    #print(np.mean(relative_angle_array), " RELATIVE ANGLE ARRAY MEAN")
+    '''
+    angle_diff = []
+    for c in range(len(cam_axis)):
+        rot_pred = cam_axis[c]
+        rot_tsai = cam_axis_tsai[c]
+
+        rotation_pred = np.linalg.inv(rot_pred) @ rot_tsai
+        
+        print((np.trace(rotation_pred)-1)/2, " THE ROTATION PRED TRACE", c)
+        pred_angle = np.rad2deg(np.arccos((np.trace(rotation_pred)-1)/2))
+        angle_diff.append(pred_angle)
+        print(pred_angle, " CAM " + str(c))
+
+    cam_position_torch = torch.tensor(cam_position).double()
+    cam_position_tsai_torch = torch.tensor(cam_position_tsai).double()
+
+    #print(cam_position_torch.shape, " HELOOAasssssssssss")
+    error_npjpe = metrics.mpjpe(cam_position_tsai_torch, cam_position_torch, use_scaling=True, root_joint=0)
+
+    print(error_npjpe)
+
+    results_focal_pred_array = []
+    results_focal_tsai_array = []
+    angle_diff_array = []
+    error_npjpe_array = []
+    focal_error_array = []
+    results_position_diff_array = []
+    
+    with open(output_path + data + '.csv','w') as file:
+
+        file.write('focal pred, focal tsai, angle difference, nmpjpe, focal percent error, position error (meters)')
+        file.write('\n')
+        
+        for i in range(len(results_focal_pred)):
+
+            focal_error = 100*np.absolute(results_focal_pred[i] - results_focal_tsai[i])/results_focal_tsai[i]
+            file.write(str(results_focal_pred[i]) + ',' + str(results_focal_tsai[i])  + ',' + str(angle_diff[i]) + ',' + str(error_npjpe.item()) + ',' + str(focal_error) + ',' + str(results_position_diff[i]))
+            file.write('\n')
+            
+            results_focal_pred_array.append(results_focal_pred[i])
+            results_focal_tsai_array.append(results_focal_tsai[i])
+            angle_diff_array.append(angle_diff[i],)
+            error_npjpe_array.append( error_npjpe.item())
+            focal_error_array.append(focal_error)
+            results_position_diff_array.append(results_position_diff[i])
+            #results_focal_pred[i], results_focal_tsai[i], angle_diff[i], error_npjpe.item(), focal_error, results_position_diff[i]
+    '''
+    
+    with open(output_path + data + '.csv','w') as file:
+
+        file.write('focal pred, focal tsai, angle difference, focal percent error, position error (meters)')
+        file.write('\n')
+        
+        for i in range(len(results_focal_pred)):
+
+            if i == 0:
+                file.write(str(results_focal_pred[i]) + ',' + str(results_focal_tsai[i])  + ',' + str(0) + ',' + str(focal_percentage[i]) + ',' + str(0))
+                file.write('\n')
+            else:
+                file.write(str(results_focal_pred[i]) + ',' + str(results_focal_tsai[i])  + ',' + str(relative_angle_array[i - 1]) + ',' + str(focal_percentage[i]) + ',' + str(results_position_diff[i - 1]))
+                file.write('\n')
+    
+    #return np.mean(results_focal_pred_array), np.mean(results_focal_tsai_array), np.mean(angle_diff_array), np.mean(error_npjpe_array), np.mean(focal_error_array), np.mean(results_position_diff_array)
+    print(results_position_diff, " result pos diff !!!!!!!!!!!!")
+
+    return results_focal_pred, results_focal_tsai, np.mean(relative_angle_array), np.mean(focal_percentage), np.mean(results_position_diff)

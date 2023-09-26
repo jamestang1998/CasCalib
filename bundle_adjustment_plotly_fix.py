@@ -1,16 +1,11 @@
-import sys
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import plotting
 import util
 import matplotlib.image as mpimg
 import bundle_intersect 
 
-import wandb
 from eval_human_pose import Metrics
-import knn
 import bundle_intersect
 from random import sample
 from sklearn.neighbors import NearestNeighbors

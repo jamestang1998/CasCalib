@@ -10,6 +10,10 @@ scripts_pairwise_bundle/plots/*
 scripts_single_view_calibration/__pycache__
 scripts_single_view_calibration/outputs/*
 scripts_single_view_calibration/plots/*
+
+scripts_debug/__pycache__
+scripts_debug/outputs/*
+scripts_debug/plots/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

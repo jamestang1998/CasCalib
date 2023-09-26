@@ -16,6 +16,76 @@ for jk in joint_keys:
 
 joint_pairs_indices = [[2, 0], [0, 1], [1, 3], [1, 4], [3, 5], [4, 6], [5, 7], [6, 8], [3, 9], [4, 10], [9, 11], [10, 12], [11, 13], [12, 14]]
 
+keypoint_array = [
+                    'left_shoulder',  #0
+                    'right_shoulder', #1
+                    'left_hip',       #2
+                    'right_hip',      #3
+                    'left_knee',      #4
+                    'right_knee',     #5
+                    'left_ankle',     #6
+                    'right_ankle']    #7
+
+height_nohead_gt = 172.72 - 19.98
+shoulder_length_gt = 33.23
+hip_length_gt = 34.62
+#https://ntrs.nasa.gov/api/citations/19700027497/downloads/19700027497.pdf
+def bone_length_constraint(point_array, keypoint_dict):
+    
+    shoulder_ind_left = keypoint_dict['left_shoulder']
+    shoulder_ind_right = keypoint_dict['right_shoulder']
+
+    hip_ind_left = keypoint_dict['left_hip']
+    hip_ind_right = keypoint_dict['right_hip']
+
+    knee_ind_left = keypoint_dict['left_knee']
+    knee_ind_right = keypoint_dict['right_knee']
+
+    ankle_ind_left = keypoint_dict['left_ankle']
+    ankle_ind_right = keypoint_dict['right_ankle']
+
+    shoulder_length = torch.norm(point_array[:, shoulder_ind_left, :] - point_array[:, shoulder_ind_right, :], dim = 1)
+    hip_length = torch.norm(point_array[:, hip_ind_left, :] - point_array[:, hip_ind_right, :], dim = 1)
+    
+    ankle_knee_left_length = torch.norm(point_array[:, ankle_ind_left, :] - point_array[:, knee_ind_left, :], dim = 1)
+    ankle_knee_right_length = torch.norm(point_array[:, ankle_ind_right, :] - point_array[:, knee_ind_right, :], dim = 1)
+    
+    knee_hip_left_length = torch.norm(point_array[:, knee_ind_left, :] - point_array[:, hip_ind_left, :], dim = 1)
+    knee_hip_right_length = torch.norm(point_array[:, knee_ind_right, :] - point_array[:, hip_ind_right, :], dim = 1)
+
+    shoulder_hip_left_length = torch.norm(point_array[:, shoulder_ind_left, :] - point_array[:, hip_ind_left, :], dim = 1)
+    shoulder_hip_right_length = torch.norm(point_array[:, shoulder_ind_right, :] - point_array[:, hip_ind_right, :], dim = 1)
+    
+    height_left = ankle_knee_left_length + knee_hip_left_length + shoulder_hip_left_length
+    height_right = ankle_knee_right_length + knee_hip_right_length + shoulder_hip_right_length
+    
+    print(" height left !!")
+    print(height_left)
+    print(" height right !!")
+    print(height_right)
+    print("hip !!")
+    print(hip_length)
+    print("shoulder !!")
+    print(shoulder_length)
+
+    
+    hip_ratio = (torch.div(hip_length, height_left) + torch.div(hip_length, height_right))/2.0
+    shoulder_ratio = (torch.div(shoulder_length, height_left) + torch.div(shoulder_length, height_right))/2.0
+    print(hip_ratio, " hip ratio")
+    print(shoulder_ratio, " shoulder ratio")
+
+    hip_ratio_gt = hip_length_gt/height_nohead_gt
+    shoulder_ratio_gt = shoulder_length_gt/height_nohead_gt
+
+    hip_error  = torch.div(torch.absolute(hip_ratio - (hip_ratio_gt)), (hip_ratio_gt))
+    shoulder_error = torch.div(torch.absolute(shoulder_ratio - (shoulder_ratio_gt)), (shoulder_ratio_gt))
+
+    print(hip_ratio_gt, " hip ratio gt")
+    print(shoulder_ratio_gt, " shoulder ratio gt")
+
+    #stop
+    return hip_error, shoulder_error
+
 #dcpose_pair = [[2,0], [0,1], [1, 3], []]
 def compute_bone_length(X):
     """
@@ -114,4 +184,4 @@ def compute_bone_length_human36m(X):
 
     print(height, " hiehgts")
     stop
-    return skel, height         
+    return skel, height 

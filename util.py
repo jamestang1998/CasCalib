@@ -27,6 +27,158 @@ from scipy import stats
 from sklearn.cluster import DBSCAN
 import random
 
+class Graph:
+    def __init__(self):
+        self.graph = defaultdict(list)
+
+    def add_edge(self, u, v):
+        self.graph[u].append(v)
+        self.graph[v].append(u)
+
+    def dfs(self, v, visited, component):
+        visited.add(v)
+        component.append(v)
+
+        for neighbor in self.graph[v]:
+            if neighbor not in visited:
+                self.dfs(neighbor, visited, component)
+
+    def get_connected_components(self):
+        visited = set()
+        components = []
+
+        for vertex in self.graph:
+            if vertex not in visited:
+                component = []
+                self.dfs(vertex, visited, component)
+                components.append(component)
+
+        return components
+
+    def get_component_edges(self, component):
+        edges = []
+
+        for vertex in component:
+            for neighbor in self.graph[vertex]:
+                if neighbor in component and (neighbor, vertex) not in edges and (vertex, neighbor) not in edges:
+                    edges.append((vertex, neighbor))
+
+        return edges
+
+def multi_view_return(bundle_rotation_matrix_array, bundle_position_matrix_array, bundle_intrinsic_matrix_array, matched_points):
+
+    return
+
+def match_pairs_graph_per_frame(pair_dict):
+    
+    return_dict = []
+    for k in list(pair_dict.keys()):
+        
+        #print(pair_dict[k], " PAIR DICT")
+        g = Graph()
+
+        hungarian_dict = {}
+        
+        corres = pair_dict[k]
+        for i in range(len(corres)):
+            
+            corres_dict = corres[i]
+            ind1 = corres_dict['name0']
+            ind2 = corres_dict['name1']
+
+            for p in range(len(corres_dict['set0'])):
+                
+                g.add_edge(str(ind1) + '_' + str(corres_dict['set0'][p]) + '_' + str(k), str(ind2) + '_' + str(corres_dict['set1'][p]) + '_' + str(corres_dict["frame"]))
+
+                node1 = str(ind1) + '_' + str(corres_dict['set0'][p]) + '_' + str(k)
+                node2 = str(ind2) + '_' + str(corres_dict['set1'][p]) + '_' + str(corres_dict["frame"])
+                
+                if node1 not in hungarian_dict:
+                    hungarian_dict[node1] = [corres_dict['dist'][p]]
+                else:
+                    hungarian_dict[node1].append(corres_dict['dist'][p])
+
+                if node2 not in hungarian_dict:
+                    hungarian_dict[node2] = [corres_dict['dist'][p]]
+                else:
+                    hungarian_dict[node2].append(corres_dict['dist'][p])
+
+        components = g.get_connected_components()
+
+        components_array = []
+        #print("******************************************")
+        #print(components)
+
+        for component in components:
+
+            co_dict = {}
+            for co in component:
+                print(hungarian_dict[co], co)
+                mean_error = np.mean(hungarian_dict[co])
+                co_dict[int(co.split('_')[0])] = [int(co.split('_')[2]), int(co.split('_')[1]), mean_error]
+            
+            return_dict.append(co_dict)
+        
+        #return_dict[k] = components_array
+        '''
+        for component in components:
+            
+            
+            #component_edges = g.get_component_edges(component)
+            #print("Component:", component)
+            #print("Edges:", component_edges)
+            #print()
+        '''
+    return return_dict
+
+def match_pairs_graph(pair_array, corres):
+    g = Graph()
+
+    for i in range(len(corres)):
+        ind1 = corres[i][0]
+        ind2 = corres[i][1]
+
+        for pair in pair_array[i]:
+            
+            g.add_edge(str(ind1) + '_' + str(pair[0]), str(ind2) + '_' + str(pair[1]))
+
+    components = g.get_connected_components()
+    for component in components:
+        component_edges = g.get_component_edges(component)
+        print("Component:", component)
+        print("Edges:", component_edges)
+        print()
+
+        #for edge in component_edges:
+
+    
+def partition_pairwise_indices(pairwise_indices):
+    sets = []
+    
+    for pair in pairwise_indices:
+        a, b = pair
+        
+        # Find sets that contain a or b
+        sets_with_a = [s for s in sets if a in s]
+        sets_with_b = [s for s in sets if b in s]
+        
+        if len(sets_with_a) > 0 and len(sets_with_b) > 0:
+            # Merge sets containing a and b
+            merged_set = set.union(*sets_with_a, *sets_with_b)
+            sets = [s for s in sets if s not in sets_with_a and s not in sets_with_b]
+            sets.append(merged_set)
+        elif len(sets_with_a) > 0:
+            # Add b to set containing a
+            sets_with_a[0].add(b)
+        elif len(sets_with_b) > 0:
+            # Add a to set containing b
+            sets_with_b[0].add(a)
+        else:
+            # Create a new set with a and b
+            sets.append(set([a, b]))
+    
+    return sets
+
 def match_3d_plotly_input2d_farthest_point(ref_time_array, ref_vel_array, sync_time, sync_vel):
 
     #print(indices)
@@ -353,44 +505,6 @@ def distance_to_plane(plane_normal, plane_point, point):
     distance = abs(dot_product) / magnitude
     
     return distance
-
-class Graph:
-    def __init__(self):
-        self.graph = defaultdict(list)
-
-    def add_edge(self, u, v):
-        self.graph[u].append(v)
-        self.graph[v].append(u)
-
-    def dfs(self, v, visited, component):
-        visited.add(v)
-        component.append(v)
-
-        for neighbor in self.graph[v]:
-            if neighbor not in visited:
-                self.dfs(neighbor, visited, component)
-
-    def get_connected_components(self):
-        visited = set()
-        components = []
-
-        for vertex in self.graph:
-            if vertex not in visited:
-                component = []
-                self.dfs(vertex, visited, component)
-                components.append(component)
-
-        return components
-
-    def get_component_edges(self, component):
-        edges = []
-
-        for vertex in component:
-            for neighbor in self.graph[vertex]:
-                if neighbor in component and (neighbor, vertex) not in edges and (vertex, neighbor) not in edges:
-                    edges.append((vertex, neighbor))
-
-        return edges
 
 def multi_view_return(bundle_rotation_matrix_array, bundle_position_matrix_array, bundle_intrinsic_matrix_array, matched_points):
 

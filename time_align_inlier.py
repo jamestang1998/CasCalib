@@ -1,11 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import plotting
-import util
 from scipy.spatial.distance import directed_hausdorff
-import icp_pytorch
-import torch
 import os
 from sklearn.metrics.pairwise import cosine_similarity
 import filter
@@ -14,12 +10,10 @@ import math
 import knn
 import random
 import plotly.graph_objects as go
-import icp_pytorch_multi
 
 from scipy.spatial.distance import cdist
 from simpleicp import PointCloud, SimpleICP
 import Icp2d
-import rotation_pca
 
 from scipy import signal, fftpack
 from scipy.interpolate import RectBivariateSpline
@@ -31,7 +25,6 @@ from scipy.signal import correlate
 import numpy as np
 from scipy.spatial.distance import euclidean
 import open3d as o3d
-import registration
 
 def dict_smooth(data, min_size = 2):
     print(data)
