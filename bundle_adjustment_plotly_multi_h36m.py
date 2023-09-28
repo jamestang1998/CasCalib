@@ -542,13 +542,28 @@ def bundle_adjustment_so3_gt(matched_points, camera_rotation, camera_translation
             #p2_min = torch.min(p2.reshape(-1, len(keypoint_array) ,3)[:,l_ankle:,2], 1)[0]
             #print(p1.shape, p2.shape, " P1 P2 SHAPESSSSSSSSSSSSSSSSs")
             #print(p1.reshape(-1, len(keypoint_array) ,3).shape, p2.reshape(-1, len(keypoint_array) ,3).shape, " reshapesss")
-            p1_min = p1.reshape(-1, len(keypoint_array) ,3)[:,r_ankle,2]
-            p2_min = p2.reshape(-1, len(keypoint_array) ,3)[:,l_ankle,2]
+            p1_min_r = p1.reshape(-1, len(keypoint_array) ,3)[:,r_ankle,2]
+            p1_min_l = p1.reshape(-1, len(keypoint_array) ,3)[:,l_ankle,2]
 
-            p_min = torch.minimum(p1_min, p2_min)
+            p2_min_r = p2.reshape(-1, len(keypoint_array) ,3)[:,r_ankle,2]
+            p2_min_l = p2.reshape(-1, len(keypoint_array) ,3)[:,l_ankle,2]
 
-            p1_min = torch.min(p1.reshape(-1, 8 ,3)[:,6:,2], 1)[0]
-            p2_min = torch.min(p2.reshape(-1, 8 ,3)[:,7:,2], 1)[0]
+            p1_min_full = torch.minimum(p1_min_r, p1_min_l)
+            p2_min_full = torch.minimum(p2_min_r, p2_min_l)
+            
+            indices1 = torch.nonzero(torch.abs(p1_min_full) < 0.1).squeeze()
+            indices2 = torch.nonzero(torch.abs(p2_min_full) < 0.1).squeeze()
+
+            print(p1_min_full, " p1_min_full")
+            print(p2_min_full, " p2_min_full")
+            p1_min = p1_min_full[indices1]
+            p2_min = p2_min_full[indices2]
+            print("*************************")
+            print(p1_min, "p1_min")
+            print(p2_min, " p2_min")
+            #p1_min = torch.min(p1.reshape(-1, 8 ,3)[:,6:,2], 1)[0]
+            #p2_min = torch.min(p2.reshape(-1, 8 ,3)[:,7:,2], 1)[0]
+            
             #print(p_min.shape, p1_min.shape, p2_min.shape)
 
             left_joints1 =  p1.reshape(-1, len(keypoint_array) ,3)[:, np.array(joint_array)[joint_l, 0],:]

@@ -581,13 +581,14 @@ for k in range(len(experiments_time)):
             w3 = 1	
             w4 = 1
             '''
+            
             w0 = 1	
             w1 = 10	
             w2 = 0.1	
             w3 = 0.1	
             w4 = 0.1
-
-            bundle_rotation_matrix_array, bundle_position_matrix_array, bundle_intrinsic_matrix_array = bundle_adjustment_plotly_multi.bundle_adjustment_so3_gt(matched_points, bundle_rotation_matrix_array, bundle_position_matrix_array, bundle_intrinsic_matrix_array, gt_rotation_array, gt_translation_array, gt_intrinsics_array, h, distortion_k_array, distortion_p_array, save_dir = output_path, iteration = 200, run_name = run_name, w0 = w0, w1 = w1, w2 = w2)
+            
+            bundle_rotation_matrix_array, bundle_position_matrix_array, bundle_intrinsic_matrix_array = bundle_adjustment_plotly_multi.bundle_adjustment_so3_gt(matched_points, bundle_rotation_matrix_array, bundle_position_matrix_array, bundle_intrinsic_matrix_array, gt_rotation_array, gt_translation_array, gt_intrinsics_array, h, distortion_k_array, distortion_p_array, save_dir = output_path, iteration = 200, run_name = run_name, w0 = w0, w1 = w1, w2 = w2, w3 = w3, w4 = w4)
 
             #print("*************************")
             #print(cam_axis4)
