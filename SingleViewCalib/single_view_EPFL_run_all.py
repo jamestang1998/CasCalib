@@ -1,9 +1,9 @@
 import sys
 parent_directory = os.path.abspath(os.path.join(os.getcwd(), '..'))
 sys.path.append(parent_directory)
-import util
+from SingleViewCalib import util
+from SingleViewCalib import data
 import os
-import data
 import json
 from datetime import datetime
 import csv
@@ -93,15 +93,8 @@ scene_list = ['terrace1']
 
 detection_path = '/local/tangytob/Summer2021/DCPose/demo/input_epfl/All_detections_n_tracks/'
 frame_path = '/local/tangytob/Summer2021/DCPose/demo/input_epfl'
-#calibration_path = '/local/tangytob/Summer2023/multiview_synchronization/calibration/20230122_151501/'
-#subject_array = ["S1", "S5", "S6", "S7", "S8", "S9", "S11"]
-#########################
-detections_list = os.listdir('/local/tangytob/Summer2021/DCPose/demo/output_epfl/json')
-frame_path_list = os.listdir('/local/tangytob/Summer2021/DCPose/demo/input_epfl')
-#calibration_path_list = os.listdir(calibration_path)
-gt_path = '/local/tangytob/Summer2023/multiview_synchronization/ground_truth/calibration/'
-#########################
-with open('/local/tangytob/Summer2023/multiview_synchronization/configuration.json', 'r') as f:
+
+with open('SingleViewCalib/configuration.json', 'r') as f:
     configuration = json.load(f)
 #11 04 2022 maybe u should pick a one to one matching of frames
 for sub in list(scene_list):
@@ -123,33 +116,6 @@ for sub in list(scene_list):
     for cn in all_view:
         frame_path_array.append(frame_path + '/' + cn)
 
-    img1 = mpimg.imread(frame_array[0], format='jpeg')
-    img_width1 = img1.shape[1] #width of image
-    img_height1 = img1.shape[0] #height of image
-
-    view_array = []
-    view_calibration = []
-
-    img_array = []
-
-    pose_array = []
-
-    frame_dict_array = []
-
-    plane_average_array = []
-    pose_dict_array = []
-    plane_mean_array = []
-
-    plane_dict_array = []
-
-    datastore_array = []
-
-    plane_matrix_array = []
-
-    ankle_coord_2d = []
-
-    gt_array = []
-    #for i in range(len(detections_array)):
     for i in [0]:
         img = mpimg.imread(frame_array[i], format='jpeg')
 
