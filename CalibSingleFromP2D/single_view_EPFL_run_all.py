@@ -1,13 +1,11 @@
 import sys
 parent_directory = os.path.abspath(os.path.join(os.getcwd(), '..'))
 sys.path.append(parent_directory)
-from SingleViewCalib import util
-from SingleViewCalib import data
+from CalibSingleFromP2D import util,data,run_calibration_ransac
 import os
 import json
 from datetime import datetime
 import csv
-import run_calibration_ransac
 import matplotlib.image as mpimg
 today = datetime.now()
 
@@ -16,32 +14,32 @@ today = datetime.now()
 name = str(today.strftime('%Y%m%d_%H%M%S'))
 
 #Gets the hyperparamter from hyperparameter.json
-threshold_euc, threshold_cos, angle_filter_video, confidence, termination_cond, num_points, h, iter, focal_lr, point_lr = util.hyperparameter('SingleViewCalib/hyperparameter.json')
+threshold_euc, threshold_cos, angle_filter_video, confidence, termination_cond, num_points, h, iter, focal_lr, point_lr = util.hyperparameter('CalibSingleFromP2D/hyperparameter.json')
 
 hyperparam_dict = {"threshold_euc": threshold_euc, "threshold_cos": threshold_cos, "angle_filter_video": angle_filter_video, "confidence": confidence, "termination_cond": termination_cond, "num_points": num_points, "h": h, "optimizer_iteration" :iter, "focal_lr" :focal_lr, "point_lr": point_lr}
 
 #Making the directories, eval is the accuracy wit hthe ground truth, output is the calibration saved as a pickle file, plot is the plots that are created during optimization.
-if os.path.isdir('SingleViewCalib/output') == False:
-    os.mkdir('SingleViewCalib/output')
+if os.path.isdir('CalibSingleFromP2D/output') == False:
+    os.mkdir('CalibSingleFromP2D/output')
 
-if os.path.isdir('SingleViewCalib/eval') == False:
-    os.mkdir('SingleViewCalib/eval')
+if os.path.isdir('CalibSingleFromP2D/eval') == False:
+    os.mkdir('CalibSingleFromP2D/eval')
 
-if os.path.isdir('SingleViewCalib/plots') == False:
-    os.mkdir('SingleViewCalib/plots')
+if os.path.isdir('CalibSingleFromP2D/plots') == False:
+    os.mkdir('CalibSingleFromP2D/plots')
 
-if os.path.isdir('SingleViewCalib/output/run_' + name) == False:
-    os.mkdir('SingleViewCalib/output/run_' + name)
+if os.path.isdir('CalibSingleFromP2D/output/run_' + name) == False:
+    os.mkdir('CalibSingleFromP2D/output/run_' + name)
 
-if os.path.isdir('SingleViewCalib/eval/run_' + name) == False:
-    os.mkdir('SingleViewCalib/eval/run_' + name)
+if os.path.isdir('CalibSingleFromP2D/eval/run_' + name) == False:
+    os.mkdir('CalibSingleFromP2D/eval/run_' + name)
 
-with open('SingleViewCalib/eval/run_' + name + '/all_runs.csv','a') as f:
+with open('CalibSingleFromP2D/eval/run_' + name + '/all_runs.csv','a') as f:
     writer = csv.writer(f)
     writer.writerow(['camera', 'subject','focal_error_ransac', 'focal_error', 'focal', 'normal_error'])
     f.close
 
-with open('SingleViewCalib/eval/run_' + name + '/average.csv','a') as f:
+with open('CalibSingleFromP2D/eval/run_' + name + '/average.csv','a') as f:
     writer1 = csv.writer(f)
     writer1.writerow(['focal_error_ransac', 'focal_error', 'normal_error'])
     f.close
@@ -50,28 +48,28 @@ with open('SingleViewCalib/eval/run_' + name + '/average.csv','a') as f:
 #The paths to the required files. Detections is the json file of 2d detections, frame paths is the path to the frames, and ground truth calibration contains the ground truth calibration (may not be available in general)
 
 #10 29 2022, something is wrong with the multi person version even for human36m, try checking the frame matching parrt, i think that might be wrong.
-tsai_cal = ['SingleViewCalib/terrace-tsai-c0.xml', 'SingleViewCalib/terrace-tsai-c1.xml', 'SingleViewCalib/terrace-tsai-c2.xml', 'SingleViewCalib/terrace-tsai-c3.xml']
-name_folder = 'SingleViewCalib//example_calibration'
+tsai_cal = ['CalibSingleFromP2D/terrace-tsai-c0.xml', 'CalibSingleFromP2D/terrace-tsai-c1.xml', 'CalibSingleFromP2D/terrace-tsai-c2.xml', 'CalibSingleFromP2D/terrace-tsai-c3.xml']
+name_folder = 'CalibSingleFromP2D//example_calibration'
 
-save_dir = 'SingleViewCalib/plots/run_' + name + name_folder
+save_dir = 'CalibSingleFromP2D/plots/run_' + name + name_folder
 
-if os.path.isdir('SingleViewCalib/plots/run_' + name) == False:
-    os.mkdir('SingleViewCalib/plots/run_' + name)
+if os.path.isdir('CalibSingleFromP2D/plots/run_' + name) == False:
+    os.mkdir('CalibSingleFromP2D/plots/run_' + name)
 
-if os.path.isdir('SingleViewCalib/plots/run_' + name + name_folder) == False:
-    os.mkdir('SingleViewCalib/plots/run_' + name + name_folder)
+if os.path.isdir('CalibSingleFromP2D/plots/run_' + name + name_folder) == False:
+    os.mkdir('CalibSingleFromP2D/plots/run_' + name + name_folder)
 
-if os.path.isdir('SingleViewCalib/plots/run_' + name + name_folder + '/search_time') == False:
-    os.mkdir('SingleViewCalib/plots/run_' + name + name_folder + '/search_time')
+if os.path.isdir('CalibSingleFromP2D/plots/run_' + name + name_folder + '/search_time') == False:
+    os.mkdir('CalibSingleFromP2D/plots/run_' + name + name_folder + '/search_time')
 
-if os.path.isdir('SingleViewCalib/plots/run_' + name + name_folder + '/search_rot') == False:
-    os.mkdir('SingleViewCalib/plots/run_' + name + name_folder + '/search_rot')
+if os.path.isdir('CalibSingleFromP2D/plots/run_' + name + name_folder + '/search_rot') == False:
+    os.mkdir('CalibSingleFromP2D/plots/run_' + name + name_folder + '/search_rot')
 
-if os.path.isdir('SingleViewCalib/plots/run_' + name + name_folder + '/ICP') == False:
-    os.mkdir('SingleViewCalib/plots/run_' + name + name_folder + '/ICP')
+if os.path.isdir('CalibSingleFromP2D/plots/run_' + name + name_folder + '/ICP') == False:
+    os.mkdir('CalibSingleFromP2D/plots/run_' + name + name_folder + '/ICP')
 
-if os.path.isdir('SingleViewCalib/plots/run_' + name + name_folder + '/bundle') == False:
-    os.mkdir('SingleViewCalib/plots/run_' + name + name_folder + '/bundle')
+if os.path.isdir('CalibSingleFromP2D/plots/run_' + name + name_folder + '/bundle') == False:
+    os.mkdir('CalibSingleFromP2D/plots/run_' + name + name_folder + '/bundle')
 
 plot_scale = 1
 line_amount = 50
@@ -94,7 +92,7 @@ scene_list = ['terrace1']
 detection_path = '/local/tangytob/Summer2021/DCPose/demo/input_epfl/All_detections_n_tracks/'
 frame_path = '/local/tangytob/Summer2021/DCPose/demo/input_epfl'
 
-with open('SingleViewCalib/configuration.json', 'r') as f:
+with open('CalibSingleFromP2D/configuration.json', 'r') as f:
     configuration = json.load(f)
 #11 04 2022 maybe u should pick a one to one matching of frames
 for sub in list(scene_list):
@@ -138,4 +136,4 @@ for sub in list(scene_list):
         print("************************")
         #print(points_2d)
         datastore_cal = data.alphapose_tracking_dataloader(points_2d, cond = 0.85)
-        ankles, cam_matrix, normal, ankleWorld, ransac_focal, datastore_filtered = run_calibration_ransac.run_calibration_ransac(datastore_cal, 'SingleViewCalib/hyperparameter.json', img, img.shape[1], img.shape[0], sub + '_', name, skip_frame = configuration['skip_frame'], max_len = configuration['max_len'], min_size = configuration['min_size'])
+        ankles, cam_matrix, normal, ankleWorld, ransac_focal, datastore_filtered = run_calibration_ransac.run_calibration_ransac(datastore_cal, 'CalibSingleFromP2D/hyperparameter.json', img, img.shape[1], img.shape[0], sub + '_', name, skip_frame = configuration['skip_frame'], max_len = configuration['max_len'], min_size = configuration['min_size'])
