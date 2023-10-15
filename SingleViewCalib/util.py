@@ -4,7 +4,6 @@ import data
 from scipy import special
 import random as rand
 
-import os
 import torch
 
 import scipy.spatial

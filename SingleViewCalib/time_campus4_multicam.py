@@ -1,20 +1,15 @@
+import os
 import sys
 # Might have to add to path
 # sys.path.append('/local/tangytob/Summer2023/multiview_synchronization/') 
-import util
-import os
-import data
+from SingleViewCalib import util,data,run_calibration_ransac
+
 import json
-
 from datetime import datetime
-
 import csv
-
-import run_calibration_ransac
 import matplotlib.image as mpimg
 
 today = datetime.now()
-import numpy as np
 
 from eval_human_pose import Metrics
 metrics = Metrics()
@@ -26,13 +21,13 @@ name = str(today.strftime('%Y%m%d_%H%M%S')) + '_EPFL_campus4_res50'
 #Gets the hyperparamter from hyperparameter.json
 (threshold_euc, threshold_cos, angle_filter_video, 
  confidence, termination_cond, num_points, h, iter, focal_lr, point_lr) = util.hyperparameter(
-     '/local/tangytob/Summer2023/multiview_synchronization/scripts_multicam/hyperparameter_campus4.json')
+     'SingleViewCalib/hyperparameter.json')
 hyperparam_dict = {"threshold_euc": threshold_euc, "threshold_cos": threshold_cos, 
                    "angle_filter_video": angle_filter_video, "confidence": confidence, 
                    "termination_cond": termination_cond, "num_points": num_points, "h": h, 
                    "optimizer_iteration" :iter, "focal_lr" :focal_lr, "point_lr": point_lr}
 
-
+# *************************************************************************************************************
 
 # EXTRINSIC MATRIX DETAILS
 # https://ksimek.github.io/2012/08/22/extrinsic/
@@ -48,6 +43,8 @@ hyperparam_dict = {"threshold_euc": threshold_euc, "threshold_cos": threshold_co
 
 # Making the directories, eval is the accuracy wit hthe ground truth, 
 # output is the calibration saved as a pickle file, plot is the plots that are created during optimization.
+
+# *************************************************************************************************************
 
 if os.path.isdir('SingleViewCalib/plots') == False:
     os.mkdir('SingleViewCalib/plots')
@@ -82,11 +79,11 @@ with open('SingleViewCalib/plots/time_' + name + '/result_bundle_no_sync.csv','a
 
 #########################
 
-grid_step = 10
-x_2d = np.linspace(-5, 5, grid_step)
-y_2d = np.linspace(0, 10, grid_step)
-xv_2d, yv_2d = np.meshgrid(x_2d, y_2d)
-coords_xy_2d =np.array((xv_2d.ravel(), yv_2d.ravel())).T
+# grid_step = 10
+# x_2d = np.linspace(-5, 5, grid_step)
+# y_2d = np.linspace(0, 10, grid_step)
+# xv_2d, yv_2d = np.meshgrid(x_2d, y_2d)
+# coords_xy_2d =np.array((xv_2d.ravel(), yv_2d.ravel())).T
 
 #############
 
@@ -100,7 +97,7 @@ campus_array_names = ['campus4-c0_avi', 'campus4-c1_avi', 'campus4-c2_avi']
 cam_comb = [(0,1), (0,2)]
 print(cam_comb)
 
-with open('/local/tangytob/Summer2023/multiview_synchronization/configuration.json', 'r') as f:
+with open('SingleViewCalib/configuration.json', 'r') as f:
     configuration = json.load(f)
 
 num = 0
@@ -113,7 +110,7 @@ for vid in campus_array_names:
     
     datastore_cal = data.coco_mmpose_dataloader(points_2d, bound_lower = 100, bound = 2500)  
 
-    frame_dir = '/local/tangytob/EPFL/videos/Frames/' + vid + '/00000000.jpg'
+    frame_dir = 'SingleViewCalib/Frames/' + vid + '/00000000.jpg'
     img = mpimg.imread(frame_dir)
     
     ankles, cam_matrix, normal, ankleWorld, focal, focal_batch, ransac_focal, datastore_filtered = run_calibration_ransac.run_calibration_ransac(datastore_cal, 'SingleViewCalib/hyperparameter.json', img, img.shape[1], img.shape[0], name, num, skip_frame = configuration['skip_frame'], max_len = configuration['max_len'], min_size = configuration['min_size'])
