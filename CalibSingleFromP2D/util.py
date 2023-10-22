@@ -1,7 +1,8 @@
 import numpy as np
-from CalibSingleFromP2D import data
+import data
 from scipy import special
 import random as rand
+import json
 
 
 def random_combination(image_index, num_points, termination_cond):
@@ -325,6 +326,57 @@ def angle_between(v1, v2):
     v1_u = unit_vector(v1)
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+def hyperparameter(filename):
+    '''
+    Parses the hyperparameter.json file
+    
+    Parameters: filename: string 
+                    This is the path to the hyperparameter file, which is a json file
+    Returns:    threshold_euc: float
+                    Euclidean threshold of ransac
+                threshold_cos: float
+                    Cosine threshold of ransac
+                angle_filter_video: float
+                    Determines how bent a pose can be before it is discarded as 'non standing poses'
+                confidence: Int
+                    Threshold for how low the detection confidence can be before it is discarded
+                termination_cond: Int
+                    Number of iterations
+                num_points: Int
+                    Number of people used to solve DLT system of equations
+                h: float
+                    assumed height of people in scene  
+                optimizer_iteration: int
+                    Number of iterations for pytorch optimizer
+                focal_lr: float
+                    Learning rate for the focal length.
+                point_lr: float
+                    Learning rate for the plane center.       
+    '''
+
+    if isinstance(filename, str):
+        with open(filename, 'r') as f_hyperparam:
+            file = json.load(f_hyperparam)
+    elif isinstance(filename, dict):
+            file = filename
+    else: 
+        raise Exception('Input must either be a string that is a path to a hyperparamter.json file, or is a dictionary with the hyperparameters')
+    
+    threshold_euc = float(file['threshold_euc'])
+    threshold_cos = float(file['threshold_cos'])
+    angle_filter_video = float(file['angle_filter_video'])
+    confidence = float(file['confidence'])
+    termination_cond = int(file['termination_cond'])
+    num_points = int(file['num_points'])
+    h = float(file['h'])
+
+    optimizer_iteration = int(file["optimizer_iteration"])
+    focal_lr = float(file["focal_lr"])
+    point_lr = float(file["point_lr"])
+    
+    return threshold_euc, threshold_cos, angle_filter_video, confidence, termination_cond, num_points, h, optimizer_iteration, focal_lr, point_lr
+
 
 def unit_vector(vector):
     '''

@@ -2,8 +2,10 @@ import os
 import sys
 # Might have to add to path
 # sys.path.append('/local/tangytob/Summer2023/multiview_synchronization/') 
-from CalibSingleFromP2D import util,data,run_calibration_ransac, eval_human_pose
-
+import util
+import data
+import run_calibration_ransac
+import eval_human_pose
 import json
 from datetime import datetime
 import csv
@@ -104,7 +106,7 @@ focal_array = []
 calib_array = []
 for vid in campus_array_names:
 
-    with open('/local/tangytob/ViTPose/vis_results/res50results/result_' + vid.split('_')[0] + '_.json', 'r') as f:
+    with open('CalibSingleFromP2D/results/result_' + vid.split('_')[0] + '_.json', 'r') as f:
         points_2d = json.load(f)
     
     datastore_cal = data.coco_mmpose_dataloader(points_2d, bound_lower = 100, bound = 2500)  
@@ -112,7 +114,10 @@ for vid in campus_array_names:
     frame_dir = 'CalibSingleFromP2D/Frames/' + vid + '/00000000.jpg'
     img = mpimg.imread(frame_dir)
     
-    ankles, cam_matrix, normal, ankleWorld, focal, focal_batch, ransac_focal, datastore_filtered = run_calibration_ransac.run_calibration_ransac(datastore_cal, 'CalibSingleFromP2D/hyperparameter.json', img, img.shape[1], img.shape[0], name, num, skip_frame = configuration['skip_frame'], max_len = configuration['max_len'], min_size = configuration['min_size'])
+    (ankles, cam_matrix, normal, ankleWorld, focal, focal_batch, ransac_focal, datastore_filtered) = run_calibration_ransac.run_calibration_ransac(
+         datastore_cal, 'CalibSingleFromP2D/hyperparameter.json', img, 
+         img.shape[1], img.shape[0], name, num, skip_frame = configuration['skip_frame'], 
+         max_len = configuration['max_len'], min_size = configuration['min_size'])
     focal_array.append(cam_matrix[0][0])
     calib_array.append({'cam_matrix': cam_matrix, 'ground_normal': normal, 'ground_position': ankleWorld})
     print(ankles, cam_matrix, normal)

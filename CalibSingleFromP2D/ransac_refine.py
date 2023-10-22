@@ -1,6 +1,6 @@
 import numpy as np
 #import calibration_newfocal
-from CalibSingleFromP2D import calibration_singlefocal
+import calibration_singlefocal
 import util
 #ALWAYS CHECK WHICH WAY THE NORMAL VECTOR IS POINTING
 
@@ -169,20 +169,14 @@ def ransac(datastore, termination_cond, img_width, img_height, num_points = 3, t
         ankle_u, ankle_v, head_u, head_v, h_conf, al_conf, ar_conf = util.get_ankles_heads(datastore, persons)
 
         #calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = calibration_singlefocal_head_ankle.calibration_focalpoint_lstq_failure_single(num_points, head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0,  h_conf =  h_conf, al_conf = al_conf, ar_conf = ar_conf)
-        calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = calibration_singlefocal.calibration_focalpoint_lstq_failure_single(num_points, head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0, focal_predicted = f,  h_conf =  h_conf, al_conf = al_conf, ar_conf = ar_conf)
-
-        #print(calibration_dictionary['focal_predicted'], " HIELASEASDADASDASD")
-        
+        calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = calibration_singlefocal.calibration_focalpoint_lstq_failure_single(num_points, head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0, focal_predicted = f,  h_conf =  h_conf, al_conf = al_conf, ar_conf = ar_conf)       
         if calibration_dictionary['focal_predicted'] is None:
             continue
         if calibration_dictionary['focal_predicted'] <= 0.0:
             continue
         
-        #print(calibration_dictionary['focal_predicted'],  search_upper, search_lower, " 123321132231122313")
         if calibration_dictionary['focal_predicted'] >= search_upper or calibration_dictionary['focal_predicted'] <= search_lower :
-            #print("aaaaaaaaaaaaaaaaaaaaa !!!")
             continue
-        #print("HELLOOOOO !!!")
 
         calibration_dictionary['persons'] = persons
 
@@ -232,7 +226,6 @@ def ransac(datastore, termination_cond, img_width, img_height, num_points = 3, t
         #print(calibration_dictionary['weighted_inlier'],calibration_dictionary_best['weighted_inlier'], " INLIER")
         if (calibration_dictionary['weighted_inlier'] > calibration_dictionary_best['weighted_inlier'] or 'weighted_inlier' not in calibration_dictionary or 'world_coordinates' not in calibration_dictionary or 'focal_predicted' not in calibration_dictionary) or (calibration_dictionary['weighted_inlier'] == calibration_dictionary_best['weighted_inlier'] and calibration_dictionary_best['global_error'] > calibration_dictionary['global_error'] and calibration_dictionary_best['global_error_cos'] > calibration_dictionary['global_error_cos']):
             calibration_dictionary_best = calibration_dictionary  
-        #print(calibration_dictionary, " 312 gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
     #print(calibration_dictionary_best)
     #print(calibration_dictionary_best['weighted_inlier'], " weighted inlierrr")
     '''

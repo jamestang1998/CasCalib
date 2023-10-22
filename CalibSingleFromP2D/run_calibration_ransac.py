@@ -1,5 +1,6 @@
 import util
-from CalibSingleFromP2D import ransac_refine, calibration_singlefocal
+import ransac_refine
+import calibration_singlefocal
 import numpy as np
 import plotting
 import os
@@ -108,7 +109,7 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
         os.mkdir('./plots/all_' + run_name)
     
     au, av, hu, hv, h_conf, al_conf, ar_conf = util.get_ankles_heads(datastore_filtered, list(range(datastore_filtered.__len__())))
-    print(len(au), " ANKLE LENGTHHHHHHHH")
+    print(len(au), " ANKLE LENGTH")
     joint_conf = (h_conf + al_conf + ar_conf)/3.0
 
     calibration_dict = ransac_refine.ransac_search(datastore_filtered, termination_cond, img_width, img_height, num_points, threshold_euc, threshold_cos, h, f = f_init, image_index = None, calibration_dictionary_best = None, use_init = use_init, sort = sort, cond_tolerance = cond_tolerance, search_upper  = search_upper, search_lower = search_lower, ransac_search_step = ransac_search_step, post_ransac_search_step = post_ransac_search_step)
@@ -144,7 +145,6 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
         #num_points = 500
     
     print(len(head_v), len(ankle_v), len(head_u), len(ankle_u), len(h_conf), len(al_conf), len(ar_conf), " HEAD AND ANKLE !!! ")
-    #calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = calibration_singlefocal_head_ankle.calibration_focalpoint_lstq_failure_single(len(ankle_u), head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0, upper_bound = np.inf, h_conf = h_conf, al_conf = al_conf, ar_conf = ar_conf)
     calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = calibration_singlefocal.calibration_focalpoint_lstq_failure_single(len(ankle_u), head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0, focal_predicted = f_init, upper_bound = np.inf, h_conf = h_conf, al_conf = al_conf, ar_conf = ar_conf)
     focal_batch = calibration_dictionary['focal_predicted']
     if calibration_dictionary['normal'] is None or calibration_dictionary['calcz'] is None :
