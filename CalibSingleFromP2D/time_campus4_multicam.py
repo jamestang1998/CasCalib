@@ -1,11 +1,11 @@
 import os
 import sys
 # Might have to add to path
-# sys.path.append('/local/tangytob/Summer2023/multiview_synchronization/') 
-import util
-import data
-import run_calibration_ransac
-import eval_human_pose
+sys.path.append('CalibS') 
+from single_util import *
+from single_data import *
+from single_run_calibration_ransac import *
+from single_eval_human_pose import *
 import json
 from datetime import datetime
 import csv
@@ -13,7 +13,7 @@ import matplotlib.image as mpimg
 
 today = datetime.now()
 
-metrics = eval_human_pose.Metrics()
+metrics = Metrics()
 
 
 #The name of is the current date
@@ -21,8 +21,8 @@ name = str(today.strftime('%Y%m%d_%H%M%S')) + '_EPFL_campus4_res50'
 
 #Gets the hyperparamter from hyperparameter.json
 (threshold_euc, threshold_cos, angle_filter_video, 
- confidence, termination_cond, num_points, h, iter, focal_lr, point_lr) = util.hyperparameter(
-     'CalibSingleFromP2D/hyperparameter.json')
+ confidence, termination_cond, num_points, h, iter, focal_lr, point_lr) = single_util.hyperparameter(
+     'CalibSingleFromP2D/single_hyperparameter.json')
 hyperparam_dict = {"threshold_euc": threshold_euc, "threshold_cos": threshold_cos, 
                    "angle_filter_video": angle_filter_video, "confidence": confidence, 
                    "termination_cond": termination_cond, "num_points": num_points, "h": h, 
@@ -88,7 +88,7 @@ with open('CalibSingleFromP2D/plots/time_' + name + '/result_bundle_no_sync.csv'
 
 #############
 
-with open('CalibSingleFromP2D/camera-parameters.json', 'r') as f:
+with open('CalibSingleFromP2D/single_camera-parameters.json', 'r') as f:
     h36m_json = json.load(f)
 
 tsai_cal = ['CalibSingleFromP2D/campus-tsai-c0.xml', 'CalibSingleFromP2D/campus-tsai-c1.xml', 'CalibSingleFromP2D/campus-tsai-c2.xml']
@@ -98,7 +98,7 @@ campus_array_names = ['campus4-c0_avi', 'campus4-c1_avi', 'campus4-c2_avi']
 cam_comb = [(0,1), (0,2)]
 print(cam_comb)
 
-with open('CalibSingleFromP2D/configuration.json', 'r') as f:
+with open('CalibSingleFromP2D/single_configuration.json', 'r') as f:
     configuration = json.load(f)
 
 num = 0
@@ -109,7 +109,7 @@ for vid in campus_array_names:
     with open('CalibSingleFromP2D/results/result_' + vid.split('_')[0] + '_.json', 'r') as f:
         points_2d = json.load(f)
     
-    datastore_cal = data.coco_mmpose_dataloader(points_2d, bound_lower = 100, bound = 2500)  
+    datastore_cal = single_data.coco_mmpose_dataloader(points_2d, bound_lower = 100, bound = 2500)  
 
     frame_dir = 'CalibSingleFromP2D/Frames/' + vid + '/00000000.jpg'
     img = mpimg.imread(frame_dir)

@@ -5,6 +5,6 @@
 "termination_cond": 20000.0,
 "num_points": 3,
 "h": 1.75,
-"iter": 10000,
+"optimizer_iteration": 10000,
 "focal_lr": 0.1,
 "point_lr": 0.01}

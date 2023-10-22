@@ -1,7 +1,7 @@
 import sys
 parent_directory = os.path.abspath(os.path.join(os.getcwd(), '..'))
 sys.path.append(parent_directory)
-from CalibSingleFromP2D import util,data,run_calibration_ransac
+from CalibSingleFromP2D import single_data, single_run_calibration_ransac, single_util
 import os
 import json
 from datetime import datetime
@@ -14,7 +14,7 @@ today = datetime.now()
 name = str(today.strftime('%Y%m%d_%H%M%S'))
 
 #Gets the hyperparamter from hyperparameter.json
-threshold_euc, threshold_cos, angle_filter_video, confidence, termination_cond, num_points, h, iter, focal_lr, point_lr = util.hyperparameter('CalibSingleFromP2D/hyperparameter.json')
+threshold_euc, threshold_cos, angle_filter_video, confidence, termination_cond, num_points, h, iter, focal_lr, point_lr = single_util.hyperparameter('CalibSingleFromP2D/hyperparameter.json')
 
 hyperparam_dict = {"threshold_euc": threshold_euc, "threshold_cos": threshold_cos, "angle_filter_video": angle_filter_video, "confidence": confidence, "termination_cond": termination_cond, "num_points": num_points, "h": h, "optimizer_iteration" :iter, "focal_lr" :focal_lr, "point_lr": point_lr}
 
@@ -135,5 +135,5 @@ for sub in list(scene_list):
             points_2d = json.load(f)
         print("************************")
         #print(points_2d)
-        datastore_cal = data.alphapose_tracking_dataloader(points_2d, cond = 0.85)
-        ankles, cam_matrix, normal, ankleWorld, ransac_focal, datastore_filtered = run_calibration_ransac.run_calibration_ransac(datastore_cal, 'CalibSingleFromP2D/hyperparameter.json', img, img.shape[1], img.shape[0], sub + '_', name, skip_frame = configuration['skip_frame'], max_len = configuration['max_len'], min_size = configuration['min_size'])
+        datastore_cal = single_data.alphapose_tracking_dataloader(points_2d, cond = 0.85)
+        ankles, cam_matrix, normal, ankleWorld, ransac_focal, datastore_filtered = single_run_calibration_ransac.run_calibration_ransac(datastore_cal, 'CalibSingleFromP2D/hyperparameter.json', img, img.shape[1], img.shape[0], sub + '_', name, skip_frame = configuration['skip_frame'], max_len = configuration['max_len'], min_size = configuration['min_size'])

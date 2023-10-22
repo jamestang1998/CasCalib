@@ -1,5 +1,5 @@
 import numpy as np
-import data
+import single_data
 from scipy import special
 import random as rand
 import json
@@ -252,7 +252,7 @@ def select_indices(datastore, angle_filter_video, confidence, img_width, img_hei
         index = np.random.choice(len(filtered_detections), max_len, replace=False)
         filtered_detections = list(np.array(filtered_detections)[index])
 
-    filtered_datastore = data.dcpose_dataloader(None)
+    filtered_datastore = single_data.dcpose_dataloader(None)
     filtered_datastore.new_data(filtered_detections)
 
     filtered_datastore.write_height(np.array(height_array))

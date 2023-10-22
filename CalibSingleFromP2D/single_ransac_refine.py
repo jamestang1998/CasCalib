@@ -1,7 +1,7 @@
 import numpy as np
 #import calibration_newfocal
-import calibration_singlefocal
-import util
+import single_calibration_singlefocal
+import single_util
 #ALWAYS CHECK WHICH WAY THE NORMAL VECTOR IS POINTING
 
 def ransac_search(datastore, termination_cond, img_width, img_height, num_points = 3, threshold_euc = 0.3, threshold_cos = 0.15, h = 1.6, f = None, image_index = None, calibration_dictionary_best = None, use_init = True, sort = 0, cond_tolerance = 20000, search_upper  = 5000, search_lower = 0, ransac_search_step = 500, post_ransac_search_step = 100):
@@ -145,10 +145,10 @@ def ransac(datastore, termination_cond, img_width, img_height, num_points = 3, t
         image_index = list(range(datastore.__len__()))
     
     np.random.shuffle(image_index)
-    point_set = util.random_combination(image_index, num_points, termination_cond)
+    point_set = single_util.random_combination(image_index, num_points, termination_cond)
     #print(point_set)
     #stop
-    ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, ppl_h_conf, ppl_al_conf, ppl_ar_conf = util.get_ankles_heads(datastore, image_index)
+    ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, ppl_h_conf, ppl_al_conf, ppl_ar_conf = single_util.get_ankles_heads(datastore, image_index)
 
     joint_conf = (ppl_h_conf + ppl_al_conf + ppl_ar_conf)/3.0
 
@@ -188,11 +188,11 @@ def ransac(datastore, termination_cond, img_width, img_height, num_points = 3, t
         ankle_2d_w = np.stack((ankle_u, ankle_v, np.ones(len(calibration_dictionary['calcz']))))
         calibration_dictionary['ankleWorld'] = np.average((calibration_dictionary['cam_inv'] @ ankle_2d_w)*np.absolute(calibration_dictionary['calcz']), axis = 1)
 
-        calibration_dictionary['world_coordinates'] = util.plane_ray_intersection_np(ppl_ankle_u, ppl_ankle_v, calibration_dictionary['cam_inv'], calibration_dictionary['normal'], calibration_dictionary['ankleWorld'])
+        calibration_dictionary['world_coordinates'] = single_util.plane_ray_intersection_np(ppl_ankle_u, ppl_ankle_v, calibration_dictionary['cam_inv'], calibration_dictionary['normal'], calibration_dictionary['ankleWorld'])
         
-        ankle_ppl_2d = util.perspective_transformation(calibration_dictionary['cam_matrix'], calibration_dictionary['world_coordinates'])
+        ankle_ppl_2d = single_util.perspective_transformation(calibration_dictionary['cam_matrix'], calibration_dictionary['world_coordinates'])
 
-        head_ppl_2d = util.perspective_transformation(calibration_dictionary['cam_matrix'], np.array(calibration_dictionary['world_coordinates']) + np.transpose(np.tile(calibration_dictionary['normal']*h, (calibration_dictionary['world_coordinates'].shape[1], 1))))
+        head_ppl_2d = single_util.perspective_transformation(calibration_dictionary['cam_matrix'], np.array(calibration_dictionary['world_coordinates']) + np.transpose(np.tile(calibration_dictionary['normal']*h, (calibration_dictionary['world_coordinates'].shape[1], 1))))
 
         head_2d_pred = np.stack((ppl_head_u, ppl_head_v))
         ankle_2d_pred = np.stack((ppl_ankle_u, ppl_ankle_v))

@@ -1,27 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import util
-from mpl_toolkits.mplot3d import Axes3D
+import single_util
 import matplotlib.cm as cm
 import imageio
 import os
 
-import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
-import matplotlib.image as mpimg
 import scipy.ndimage as sp
-import geometry
 from random import choice
 import math
-import matplotlib.image as mpimg
-from mpl_toolkits.mplot3d import Axes3D
 import plotly.express as px
 import plotly.graph_objects as go
 from skimage import io
-import plotly
-import bundle_intersect
+import single_bundle_intersect
 import torch
-import Icp2d
+import single_Icp2d
 
 def plot_slide1(df, save_dir, name):
     #fig = px.scatter(df, x="sp", y="y", animation_frame='ai')
@@ -173,7 +166,7 @@ def generate_3d_plotly_matches_input2d(peturb_extrinsics_array, peturb_single_vi
         #print(peturb_single_view_array)
         #print(all_points_ref)
         #print(np.array(list(all_points_ref[fr].values())).shape, " HSPAEASE")
-        plane = util.plane_ray_intersection_np(np.array(list(all_points_ref[fr].values()))[:, 0], np.array(list(all_points_ref[fr].values()))[:, 1], np.linalg.inv(peturb_single_view_array[0]['cam_matrix']),  peturb_single_view_array[0]["ground_normal"], peturb_single_view_array[0]['ground_position'])
+        plane = single_util.plane_ray_intersection_np(np.array(list(all_points_ref[fr].values()))[:, 0], np.array(list(all_points_ref[fr].values()))[:, 1], np.linalg.inv(peturb_single_view_array[0]['cam_matrix']),  peturb_single_view_array[0]["ground_normal"], peturb_single_view_array[0]['ground_position'])
         
         #print(len(peturb_extrinsics_array), " asdasdasd")
         init_ref_shift_matrix = peturb_extrinsics_array[0]['init_sync_center_array']
@@ -192,7 +185,7 @@ def generate_3d_plotly_matches_input2d(peturb_extrinsics_array, peturb_single_vi
         '''
         for k in all_points_ref[fr].keys():
 
-            plane = util.plane_ray_intersection_np([np.array(list(all_points_ref[fr][k]))[0]], [np.array(list(all_points_ref[fr][k]))[1]], np.linalg.inv(peturb_single_view_array[0]['cam_matrix']),  peturb_single_view_array[0]["ground_normal"], peturb_single_view_array[0]['ground_position'])
+            plane = single_util.plane_ray_intersection_np([np.array(list(all_points_ref[fr][k]))[0]], [np.array(list(all_points_ref[fr][k]))[1]], np.linalg.inv(peturb_single_view_array[0]['cam_matrix']),  peturb_single_view_array[0]["ground_normal"], peturb_single_view_array[0]['ground_position'])
             plane = np.transpose(np.r_[plane, np.ones((1, plane.shape[1]))])
 
             #print(plane.shape, " HEALSDOAIASDASDASD")
@@ -257,14 +250,14 @@ def generate_3d_plotly_matches_input2d(peturb_extrinsics_array, peturb_single_vi
             plane_matrix_array = peturb_extrinsics_array[i]['plane_matrix_array']
             #print(np.array(list(all_points[fr].values())).shape, " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             '''
-            plane = util.plane_ray_intersection_np(np.array(list(all_points[fr].values()))[:, 0], np.array(list(all_points[fr].values()))[:, 1], np.linalg.inv(peturb_single_view_array[i]['cam_matrix']),  peturb_single_view_array[i]["ground_normal"], peturb_single_view_array[i]['ground_position'])
+            plane = single_util.plane_ray_intersection_np(np.array(list(all_points[fr].values()))[:, 0], np.array(list(all_points[fr].values()))[:, 1], np.linalg.inv(peturb_single_view_array[i]['cam_matrix']),  peturb_single_view_array[i]["ground_normal"], peturb_single_view_array[i]['ground_position'])
             plane = np.transpose(np.r_[plane, np.ones((1, plane.shape[1]))])
             points = np.transpose(icp_rot_matrix @ init_rot_matrix @ np.transpose(np.transpose(plane_matrix_array @ np.transpose(np.array(plane))) - np.array([[init_ref_shift_matrix[0], init_ref_shift_matrix[1], 0, 0]]))[:3, :])
             '''
             points = []
             for c in all_points_array[i][fr].keys():
                 
-                plane1 = util.plane_ray_intersection_np([np.array(list(all_points_array[i][fr][c]))[0]], [np.array(list(all_points_array[i][fr][c]))[1]], np.linalg.inv(peturb_single_view_array[i]['cam_matrix']),  peturb_single_view_array[i]["ground_normal"], peturb_single_view_array[i]['ground_position'])
+                plane1 = single_util.plane_ray_intersection_np([np.array(list(all_points_array[i][fr][c]))[0]], [np.array(list(all_points_array[i][fr][c]))[1]], np.linalg.inv(peturb_single_view_array[i]['cam_matrix']),  peturb_single_view_array[i]["ground_normal"], peturb_single_view_array[i]['ground_position'])
                 plane1 = np.transpose(np.r_[plane1, np.ones((1, plane1.shape[1]))])
                 transformed_sync = np.transpose(icp_rot_matrix @ init_rot_matrix @ np.transpose(np.transpose(plane_matrix_array @ np.transpose(np.array(plane1))) - np.array([[init_ref_shift_matrix[0], init_ref_shift_matrix[1], 0, 0]]))[:3, :])
                 
@@ -281,7 +274,7 @@ def generate_3d_plotly_matches_input2d(peturb_extrinsics_array, peturb_single_vi
             '''
             for k in all_points[fr].keys():
                 
-                plane = util.plane_ray_intersection_np([np.array(list(all_points[fr][k]))[0]], [np.array(list(all_points[fr][k]))[1]], np.linalg.inv(peturb_single_view_array[i]['cam_matrix']),  peturb_single_view_array[i]["ground_normal"], peturb_single_view_array[i]['ground_position'])
+                plane = single_util.plane_ray_intersection_np([np.array(list(all_points[fr][k]))[0]], [np.array(list(all_points[fr][k]))[1]], np.linalg.inv(peturb_single_view_array[i]['cam_matrix']),  peturb_single_view_array[i]["ground_normal"], peturb_single_view_array[i]['ground_position'])
                 plane = np.transpose(np.r_[plane, np.ones((1, plane.shape[1]))])
                 transformed_sync = np.transpose(icp_rot_matrix @ init_rot_matrix @ np.transpose(np.transpose(plane_matrix_array @ np.transpose(np.array(plane))) - np.array([[init_ref_shift_matrix[0], init_ref_shift_matrix[1], 0, 0]]))[:3, :])
                 if k in track_dict[0].keys():
@@ -298,7 +291,7 @@ def generate_3d_plotly_matches_input2d(peturb_extrinsics_array, peturb_single_vi
             #indices = Icp2d.match(points_ref, points, points_center_ref,  points_center)  
             #indices = Icp2d.match_no_normalize(points_ref, points)
             #A B
-            matched_A, matched_B, row_ind, col_ind = util.hungarian_assignment(points_ref, points)
+            matched_A, matched_B, row_ind, col_ind = single_util.hungarian_assignment(points_ref, points)
             #print(len(indices), " heloasdasdddd")
 
             x_sync = points[:, 0]#[0, 1, 0, 1, 0, 1, 0, 1]
@@ -1823,7 +1816,7 @@ def plot_ground_truth(save_dir, img, scale, line_amount, name, h, gt1_array = []
         print(detections.shape, " SHAPEEE")
         print(intrinsic_matrix, " intrinsic_matrix")
         '''
-        plane_3d = util.plane_ray_intersection_np(detections[:, 0], detections[:, 1], np.linalg.inv(intrinsic_matrix), z_axis, translation1)
+        plane_3d = single_util.plane_ray_intersection_np(detections[:, 0], detections[:, 1], np.linalg.inv(intrinsic_matrix), z_axis, translation1)
 
         print(plane_3d.shape, " WEEWQWEWE")
         ax1.scatter(plane_3d[0, :], plane_3d[1, :], plane_3d[2, :], c = color_array[i])
@@ -1908,7 +1901,7 @@ def display_plane_matrix(data, rot_matrix, save_dir, img, from_pickle, scale, li
     fig, ax1 = plt.subplots(1, 1)
     fig.suptitle('Ground plane overlay (birds eye view)')   
     
-    plane_world = np.squeeze(util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
+    plane_world = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
 
     #GRAPHING THE IMAGE VIEW
     
@@ -2284,17 +2277,17 @@ def plot_plane(ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, save_dir, img, 
         if ppl_ankle_u[i] < 0 or ppl_ankle_v[i] < 0 or ppl_head_u[i] < 0 or ppl_head_v[i] < 0:
             continue
             
-        person_world = np.squeeze(util.plane_ray_intersection_np([ppl_ankle_u[i]], [ppl_ankle_v[i]], cam_inv, normal, ankleWorld))   
+        person_world = np.squeeze(single_util.plane_ray_intersection_np([ppl_ankle_u[i]], [ppl_ankle_v[i]], cam_inv, normal, ankleWorld))   
         ankle_distance_array.append(np.linalg.norm(person_world))
-        ankle_ppl_2d = util.perspective_transformation(cam_matrix, person_world)
-        head_ppl_2d = util.perspective_transformation(cam_matrix, np.array(person_world) + np.squeeze(normal)*h)
+        ankle_ppl_2d = single_util.perspective_transformation(cam_matrix, person_world)
+        head_ppl_2d = single_util.perspective_transformation(cam_matrix, np.array(person_world) + np.squeeze(normal)*h)
 
         head_vect_pred = np.array([head_ppl_2d[0], head_ppl_2d[1]]) - np.array([ankle_ppl_2d[0], ankle_ppl_2d[1]])
         head_vect_ground = np.array([ppl_head_u[i], ppl_head_v[i]]) - np.array([ppl_ankle_u[i], ppl_ankle_v[i]])
 
         head_vect_ground_norm = np.linalg.norm(head_vect_ground)
         
-        error_cos = 1.0 - util.matrix_cosine(np.expand_dims(head_vect_pred, axis = 0), np.expand_dims(head_vect_ground, axis = 0))
+        error_cos = 1.0 - single_util.matrix_cosine(np.expand_dims(head_vect_pred, axis = 0), np.expand_dims(head_vect_ground, axis = 0))
         error_norm = np.linalg.norm(np.array([head_ppl_2d[0], head_ppl_2d[1]]) - np.array([ppl_head_u[i], ppl_head_v[i]]))/head_vect_ground_norm
         
         if error_cos < threshold_cos and error_norm < threshold_euc:
@@ -2339,11 +2332,11 @@ def display_homography_horiz_bottom(cam_matrix, cam_inv, scale, img_width, img_h
     Returns:    ax_array: list of matplotlib ax object
     '''
 
-    plane_world = np.squeeze(util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld))
+    plane_world = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld))
     
     plane_world_2d = cam_matrix @ plane_world
     
-    plane_world1 = np.squeeze(util.plane_ray_intersection_np([img_width/2.0 + 1], [img_height], cam_inv, normal, ankleWorld))
+    plane_world1 = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0 + 1], [img_height], cam_inv, normal, ankleWorld))
                 
     v_basis = np.array(plane_world1) - np.array(plane_world)
     v_basis = v_basis/np.linalg.norm(v_basis)
@@ -2355,9 +2348,9 @@ def display_homography_horiz_bottom(cam_matrix, cam_inv, scale, img_width, img_h
     y_basis_3d = [plane_world[0] + scale*u_basis[0], plane_world[1] + scale*u_basis[1], plane_world[2] + scale*u_basis[2]]
     z_basis_3d = [plane_world[0] + scale*normal[0], plane_world[1] + scale*normal[1], plane_world[2] + scale*normal[2]]
 
-    x_basis = util.perspective_transformation(cam_matrix, x_basis_3d)
-    y_basis = util.perspective_transformation(cam_matrix, y_basis_3d)
-    z_basis = util.perspective_transformation(cam_matrix, z_basis_3d)
+    x_basis = single_util.perspective_transformation(cam_matrix, x_basis_3d)
+    y_basis = single_util.perspective_transformation(cam_matrix, y_basis_3d)
+    z_basis = single_util.perspective_transformation(cam_matrix, z_basis_3d)
     
     ax_array[0].scatter(x = plane_world_2d[0]/plane_world_2d[2], y = plane_world_2d[1]/plane_world_2d[2], c = 'black', s = 40)
     ax_array[0].scatter(x = img_width/2.0,y = img_height, c='red',  s=20)
@@ -2369,28 +2362,28 @@ def display_homography_horiz_bottom(cam_matrix, cam_inv, scale, img_width, img_h
     ax_array[0].plot([img_width/2.0, y_basis[0]],[img_height, y_basis[1]], '-k', c='lime',  linewidth=1.0)
     ax_array[0].plot([img_width/2.0, z_basis[0]],[img_height, z_basis[1]], '-k', c='red',  linewidth=1.0)
 
-    rot_matrix = util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
+    rot_matrix = single_util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
     
     color = 'cyan'
     color1 = 'cyan'
     for i in range(-line_amount,line_amount):
-            p00, p00_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(0)*scale], plane_world, normal, img_width, img_height)
-            p01, p01_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
-            p10, p10_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
-            p11, p11_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p00, p00_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(0)*scale], plane_world, normal, img_width, img_height)
+            p01, p01_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
+            p10, p10_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p11, p11_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
             
             if p00_3d[2] < 0:
-                p00_3d = util.plane_line_intersection(p00_3d, p01_3d, [0,0,1], [0,0,0.1])
-                p00 = util.perspective_transformation(cam_matrix, p00_3d)
+                p00_3d = single_util.plane_line_intersection(p00_3d, p01_3d, [0,0,1], [0,0,0.1])
+                p00 = single_util.perspective_transformation(cam_matrix, p00_3d)
             if p01_3d[2] < 0:
-                p01_3d = util.plane_line_intersection(p01_3d, p00_3d, [0,0,1], [0,0,0.1])
-                p01 = util.perspective_transformation(cam_matrix, p01_3d)
+                p01_3d = single_util.plane_line_intersection(p01_3d, p00_3d, [0,0,1], [0,0,0.1])
+                p01 = single_util.perspective_transformation(cam_matrix, p01_3d)
             if p10_3d[2] < 0:
-                p10_3d = util.plane_line_intersection(p10_3d, p11_3d, [0,0,1], [0,0,0.1])
-                p10 = util.perspective_transformation(cam_matrix, p10_3d)
+                p10_3d = single_util.plane_line_intersection(p10_3d, p11_3d, [0,0,1], [0,0,0.1])
+                p10 = single_util.perspective_transformation(cam_matrix, p10_3d)
             if p11_3d[2] < 0:
-                p11_3d = util.plane_line_intersection(p11_3d, p10_3d, [0,0,1], [0,0,0.1])
-                p11 = util.perspective_transformation(cam_matrix, p11_3d)
+                p11_3d = single_util.plane_line_intersection(p11_3d, p10_3d, [0,0,1], [0,0,0.1])
+                p11 = single_util.perspective_transformation(cam_matrix, p11_3d)
             
             p00_plane = rot_matrix @ p00_3d
             p01_plane = rot_matrix @ p01_3d
@@ -2481,12 +2474,12 @@ def display_2d_grid_dict_frame(input_dict, save_dir, img, from_pickle, scale, li
 
     cam_inv = np.linalg.inv(cam_matrix)
     
-    rot_matrix = util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
+    rot_matrix = single_util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
     
     fig, ax1 = plt.subplots(1, 1)
     fig.suptitle('Ground plane overlay (birds eye view)')   
     
-    plane_world = np.squeeze(util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
+    plane_world = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
 
     #GRAPHING THE IMAGE VIEW
     
@@ -2495,15 +2488,15 @@ def display_2d_grid_dict_frame(input_dict, save_dir, img, from_pickle, scale, li
     linewidth = 1
     ax1.scatter(x=0.0, y=0.0, c='black', s=30)
 
-    p_center_proj, p_center_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
+    p_center_proj, p_center_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
     p_center = rot_matrix @ p_center_3d  
 
     if save_dir is not None:
         for i in range(-line_amount,line_amount):
-                p00, p00_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
-                p01, p01_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
-                p10, p10_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
-                p11, p11_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+                p00, p00_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
+                p01, p01_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
+                p10, p10_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+                p11, p11_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
                     
                 p00 = (rot_matrix @ p00_3d) - p_center 
                 p01 = (rot_matrix @ p01_3d) - p_center  
@@ -2535,7 +2528,7 @@ def display_2d_grid_dict_frame(input_dict, save_dir, img, from_pickle, scale, li
             #if ppl_ankle_u < 0 or ppl_ankle_v < 0 or ppl_head_u < 0 or ppl_head_v < 0:
             #    continue
             
-            ankle_3d = np.squeeze(util.plane_ray_intersection_np([ppl_ankle_u], [ppl_ankle_v], cam_inv, normal, ankleWorld))
+            ankle_3d = np.squeeze(single_util.plane_ray_intersection_np([ppl_ankle_u], [ppl_ankle_v], cam_inv, normal, ankleWorld))
             person_plane = (rot_matrix @ ankle_3d) 
             #ax1.scatter(x=person_plane[0], y=person_plane[1], c='green', s=30)
             
@@ -2546,15 +2539,15 @@ def display_2d_grid_dict_frame(input_dict, save_dir, img, from_pickle, scale, li
 
             
             #############
-            ankle_ppl_2d = util.perspective_transformation(cam_matrix, ankle_3d)
-            head_ppl_2d = util.perspective_transformation(cam_matrix, np.array(ankle_3d) + np.squeeze(normal)*h)
+            ankle_ppl_2d = single_util.perspective_transformation(cam_matrix, ankle_3d)
+            head_ppl_2d = single_util.perspective_transformation(cam_matrix, np.array(ankle_3d) + np.squeeze(normal)*h)
 
             head_vect_pred = np.array([head_ppl_2d[0], head_ppl_2d[1]]) - np.array([ankle_ppl_2d[0], ankle_ppl_2d[1]])
             head_vect_ground = np.array([ppl_head_u, ppl_head_v]) - np.array([ppl_ankle_u, ppl_ankle_v])
 
             head_vect_ground_norm = np.linalg.norm(head_vect_ground)
             
-            error_cos = 1.0 - util.matrix_cosine(np.expand_dims(head_vect_pred, axis = 0), np.expand_dims(head_vect_ground, axis = 0))
+            error_cos = 1.0 - single_util.matrix_cosine(np.expand_dims(head_vect_pred, axis = 0), np.expand_dims(head_vect_ground, axis = 0))
             error_norm = np.linalg.norm(np.array([head_ppl_2d[0], head_ppl_2d[1]]) - np.array([ppl_head_u, ppl_head_v]))/head_vect_ground_norm
             
             if save_dir is not None:
@@ -2630,12 +2623,12 @@ def display_2d_grid_dict(input_dict, save_dir, img, from_pickle, scale, line_amo
 
     cam_inv = np.linalg.inv(cam_matrix)
     
-    rot_matrix = util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
+    rot_matrix = single_util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
     
     fig, ax1 = plt.subplots(1, 1)
     fig.suptitle('Ground plane overlay (birds eye view)')   
     
-    plane_world = np.squeeze(util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
+    plane_world = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
 
     #GRAPHING THE IMAGE VIEW
     
@@ -2644,14 +2637,14 @@ def display_2d_grid_dict(input_dict, save_dir, img, from_pickle, scale, line_amo
     linewidth = 1
     ax1.scatter(x=0.0, y=0.0, c='black', s=30)
 
-    p_center_proj, p_center_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
+    p_center_proj, p_center_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
     p_center = rot_matrix @ p_center_3d  
 
     for i in range(-line_amount,line_amount):
-            p00, p00_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
-            p01, p01_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
-            p10, p10_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
-            p11, p11_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p00, p00_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
+            p01, p01_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
+            p10, p10_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p11, p11_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
                 
             p00 = (rot_matrix @ p00_3d) - p_center 
             p01 = (rot_matrix @ p01_3d) - p_center  
@@ -2683,7 +2676,7 @@ def display_2d_grid_dict(input_dict, save_dir, img, from_pickle, scale, line_amo
             if ppl_ankle_u < 0 or ppl_ankle_v < 0 or ppl_head_u < 0 or ppl_head_v < 0:
                 continue
             
-            ankle_3d = np.squeeze(util.plane_ray_intersection_np([ppl_ankle_u], [ppl_ankle_v], cam_inv, normal, ankleWorld))
+            ankle_3d = np.squeeze(single_util.plane_ray_intersection_np([ppl_ankle_u], [ppl_ankle_v], cam_inv, normal, ankleWorld))
             person_plane = (rot_matrix @ ankle_3d) 
             #ax1.scatter(x=person_plane[0], y=person_plane[1], c='green', s=30)
             
@@ -2694,15 +2687,15 @@ def display_2d_grid_dict(input_dict, save_dir, img, from_pickle, scale, line_amo
 
             
             #############
-            ankle_ppl_2d = util.perspective_transformation(cam_matrix, ankle_3d)
-            head_ppl_2d = util.perspective_transformation(cam_matrix, np.array(ankle_3d) + np.squeeze(normal)*h)
+            ankle_ppl_2d = single_util.perspective_transformation(cam_matrix, ankle_3d)
+            head_ppl_2d = single_util.perspective_transformation(cam_matrix, np.array(ankle_3d) + np.squeeze(normal)*h)
 
             head_vect_pred = np.array([head_ppl_2d[0], head_ppl_2d[1]]) - np.array([ankle_ppl_2d[0], ankle_ppl_2d[1]])
             head_vect_ground = np.array([ppl_head_u, ppl_head_v]) - np.array([ppl_ankle_u, ppl_ankle_v])
 
             head_vect_ground_norm = np.linalg.norm(head_vect_ground)
             
-            error_cos = 1.0 - util.matrix_cosine(np.expand_dims(head_vect_pred, axis = 0), np.expand_dims(head_vect_ground, axis = 0))
+            error_cos = 1.0 - single_util.matrix_cosine(np.expand_dims(head_vect_pred, axis = 0), np.expand_dims(head_vect_ground, axis = 0))
             error_norm = np.linalg.norm(np.array([head_ppl_2d[0], head_ppl_2d[1]]) - np.array([ppl_head_u, ppl_head_v]))/head_vect_ground_norm
             
             if error_cos < threshold_cos and error_norm < threshold_euc:
@@ -2775,9 +2768,9 @@ def display_2d_grid_ref_sync(ppl_ankle_u, ppl_ankle_v, img, from_pickle, scale, 
 
     cam_inv = np.linalg.inv(cam_matrix)
     
-    rot_matrix = util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)  
+    rot_matrix = single_util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)  
     
-    plane_world = np.squeeze(util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
+    plane_world = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
 
     #GRAPHING THE IMAGE VIEW
     
@@ -2786,14 +2779,14 @@ def display_2d_grid_ref_sync(ppl_ankle_u, ppl_ankle_v, img, from_pickle, scale, 
     linewidth = 1
     ax1.scatter(x=0.0, y=0.0, c='black', s=30)
 
-    p_center_proj, p_center_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
+    p_center_proj, p_center_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
     p_center = rot_matrix @ p_center_3d  
 
     for i in range(-line_amount,line_amount):
-            p00, p00_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
-            p01, p01_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
-            p10, p10_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
-            p11, p11_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p00, p00_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
+            p01, p01_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
+            p10, p10_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p11, p11_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
                 
             p00 = (rot_matrix @ p00_3d) - p_center 
             p01 = (rot_matrix @ p01_3d) - p_center  
@@ -2816,7 +2809,7 @@ def display_2d_grid_ref_sync(ppl_ankle_u, ppl_ankle_v, img, from_pickle, scale, 
         if ppl_ankle_u[i] < 0 or ppl_ankle_v[i] < 0:
             continue
         
-        ankle_3d = np.squeeze(util.plane_ray_intersection_np([ppl_ankle_u[i]], [ppl_ankle_v[i]], cam_inv, normal, ankleWorld))
+        ankle_3d = np.squeeze(single_util.plane_ray_intersection_np([ppl_ankle_u[i]], [ppl_ankle_v[i]], cam_inv, normal, ankleWorld))
         person_plane = (rot_matrix @ ankle_3d) 
         #ax1.scatter(x=person_plane[0], y=person_plane[1], c='green', s=30)
         
@@ -2888,12 +2881,12 @@ def display_2d_grid(ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, save_dir, 
 
     cam_inv = np.linalg.inv(cam_matrix)
     
-    rot_matrix = util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
+    rot_matrix = single_util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
     
     fig, ax1 = plt.subplots(1, 1)
     fig.suptitle('Ground plane overlay (birds eye view)')   
     
-    plane_world = np.squeeze(util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
+    plane_world = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
 
     #GRAPHING THE IMAGE VIEW
     
@@ -2902,14 +2895,14 @@ def display_2d_grid(ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, save_dir, 
     linewidth = 1
     ax1.scatter(x=0.0, y=0.0, c='black', s=30)
 
-    p_center_proj, p_center_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
+    p_center_proj, p_center_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
     p_center = rot_matrix @ p_center_3d  
 
     for i in range(-line_amount,line_amount):
-            p00, p00_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
-            p01, p01_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
-            p10, p10_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
-            p11, p11_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p00, p00_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
+            p01, p01_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
+            p10, p10_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p11, p11_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
                 
             p00 = (rot_matrix @ p00_3d) - p_center 
             p01 = (rot_matrix @ p01_3d) - p_center  
@@ -2932,7 +2925,7 @@ def display_2d_grid(ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, save_dir, 
         if ppl_ankle_u[i] < 0 or ppl_ankle_v[i] < 0 or ppl_head_u[i] < 0 or ppl_head_v[i] < 0:
             continue
         
-        ankle_3d = np.squeeze(util.plane_ray_intersection_np([ppl_ankle_u[i]], [ppl_ankle_v[i]], cam_inv, normal, ankleWorld))
+        ankle_3d = np.squeeze(single_util.plane_ray_intersection_np([ppl_ankle_u[i]], [ppl_ankle_v[i]], cam_inv, normal, ankleWorld))
         person_plane = (rot_matrix @ ankle_3d) 
         #ax1.scatter(x=person_plane[0], y=person_plane[1], c='green', s=30)
         
@@ -2941,15 +2934,15 @@ def display_2d_grid(ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, save_dir, 
 
         
         #############
-        ankle_ppl_2d = util.perspective_transformation(cam_matrix, ankle_3d)
-        head_ppl_2d = util.perspective_transformation(cam_matrix, np.array(ankle_3d) + np.squeeze(normal)*h)
+        ankle_ppl_2d = single_util.perspective_transformation(cam_matrix, ankle_3d)
+        head_ppl_2d = single_util.perspective_transformation(cam_matrix, np.array(ankle_3d) + np.squeeze(normal)*h)
 
         head_vect_pred = np.array([head_ppl_2d[0], head_ppl_2d[1]]) - np.array([ankle_ppl_2d[0], ankle_ppl_2d[1]])
         head_vect_ground = np.array([ppl_head_u[i], ppl_head_v[i]]) - np.array([ppl_ankle_u[i], ppl_ankle_v[i]])
 
         head_vect_ground_norm = np.linalg.norm(head_vect_ground)
         
-        error_cos = 1.0 - util.matrix_cosine(np.expand_dims(head_vect_pred, axis = 0), np.expand_dims(head_vect_ground, axis = 0))
+        error_cos = 1.0 - single_util.matrix_cosine(np.expand_dims(head_vect_pred, axis = 0), np.expand_dims(head_vect_ground, axis = 0))
         error_norm = np.linalg.norm(np.array([head_ppl_2d[0], head_ppl_2d[1]]) - np.array([ppl_head_u[i], ppl_head_v[i]]))/head_vect_ground_norm
         
         if error_cos < threshold_cos and error_norm < threshold_euc:
@@ -2962,7 +2955,7 @@ def display_2d_grid(ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, save_dir, 
     
     img_bl_world = (rot_matrix @ cam_inv @ np.array([0,img_height/2.0, 1]))
     img_br_world = (rot_matrix @ cam_inv @ np.array([img_width,img_height/2.0, 1]))
-    print(np.degrees(util.angle_between(img_bl_world, img_br_world)), " ANGlE !!!!!!!!!!!!!!!!!!!!!")
+    print(np.degrees(single_util.angle_between(img_bl_world, img_br_world)), " ANGlE !!!!!!!!!!!!!!!!!!!!!")
 
     img_bl_world = (img_bl_world/np.linalg.norm(img_bl_world))*np.sqrt(2*np.square(scale*line_amount))
     img_br_world = (img_br_world/np.linalg.norm(img_br_world))*np.sqrt(2*np.square(scale*line_amount))
@@ -3025,12 +3018,12 @@ def display_2d_plane(ankles_array, save_dir, img, from_pickle, scale, line_amoun
 
     cam_inv = np.linalg.inv(cam_matrix)
     
-    rot_matrix = util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
+    rot_matrix = single_util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
     
     fig, ax1 = plt.subplots(1, 1)
     fig.suptitle('Ground plane overlay (birds eye view)')   
     
-    plane_world = np.squeeze(util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
+    plane_world = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
 
     #GRAPHING THE IMAGE VIEW
     
@@ -3039,14 +3032,14 @@ def display_2d_plane(ankles_array, save_dir, img, from_pickle, scale, line_amoun
     linewidth = 1
     ax1.scatter(x=0.0, y=0.0, c='black', s=30)
 
-    p_center_proj, p_center_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
+    p_center_proj, p_center_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[0,0], plane_world, normal, img_width, img_height)
 
     p_center = rot_matrix @ p_center_3d  
     for i in range(-line_amount,line_amount):
-            p00, p00_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
-            p01, p01_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
-            p10, p10_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
-            p11, p11_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p00, p00_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(-line_amount)*scale], plane_world, normal, img_width, img_height)
+            p01, p01_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
+            p10, p10_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p11, p11_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
                 
             p00 = (rot_matrix @ p00_3d) - p_center
             p01 = (rot_matrix @ p01_3d) - p_center  
@@ -3179,19 +3172,19 @@ def grid_3d(ax1, img_width, img_height, from_pickle, scale, line_amount, rot_mat
 
     cam_inv = np.linalg.inv(cam_matrix)
     
-    plane_world = np.squeeze(util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
+    plane_world = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
     
     color = 'cyan'
     
     point_3d = []
     
-    #rot_matrix = util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
+    #rot_matrix = single_util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
     
     for i in range(-line_amount,line_amount):
-            p00, p00_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(0)*scale], plane_world, normal, img_width, img_height)
-            p01, p01_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
-            p10, p10_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
-            p11, p11_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p00, p00_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(0)*scale], plane_world, normal, img_width, img_height)
+            p01, p01_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
+            p10, p10_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p11, p11_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
             
             #point_3d = point_3d + [p00_3d, p01_3d, p10_3d, p11_3d]
             
@@ -3272,19 +3265,19 @@ def display_3d_grid(ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, img, from_
     ax1 = fig3d.gca(projection='3d')
     fig3d.suptitle('ax3')  
     
-    plane_world = np.squeeze(util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
+    plane_world = np.squeeze(single_util.plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, ankleWorld)) 
     
     color = 'cyan'
     
     point_3d = []
     
-    rot_matrix = util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
+    rot_matrix = single_util.basis_change_rotation_matrix(cam_matrix, cam_inv, ankleWorld, normal, img_width, img_height)
     
     for i in range(-line_amount,line_amount):
-            p00, p00_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(0)*scale], plane_world, normal, img_width, img_height)
-            p01, p01_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
-            p10, p10_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
-            p11, p11_3d = util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p00, p00_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(0)*scale], plane_world, normal, img_width, img_height)
+            p01, p01_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(i)*scale,(line_amount)*scale], plane_world, normal, img_width, img_height)
+            p10, p10_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(-line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
+            p11, p11_3d = single_util.project_point_horiz_bottom(cam_matrix, cam_inv,[(line_amount)*scale,(i)*scale], plane_world, normal, img_width, img_height)
             
             point_3d = point_3d + [p00_3d, p01_3d, p10_3d, p11_3d]
             
@@ -3313,7 +3306,7 @@ def display_3d_grid(ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, img, from_
         if ppl_ankle_u[i] < 0 or ppl_ankle_v[i] < 0 or ppl_head_u[i] < 0 or ppl_head_v[i] < 0:
             continue
 
-        ankle_3d = np.squeeze(util.plane_ray_intersection_np([ppl_ankle_u[i]], [ppl_ankle_v[i]], cam_inv, normal, ankleWorld)) 
+        ankle_3d = np.squeeze(single_util.plane_ray_intersection_np([ppl_ankle_u[i]], [ppl_ankle_v[i]], cam_inv, normal, ankleWorld)) 
         
         head_3d = ankle_3d - normal*h
         point_3d.append(ankle_3d)

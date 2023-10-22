@@ -1,5 +1,5 @@
 import numpy as np
-import util
+import single_util
 np.set_printoptions(threshold=np.inf)
 
 #COORDINATE SYSTEM
@@ -115,7 +115,7 @@ def compute_focal_failure_single_lstq(au, av, L, t1, t2, upper_bound = np.inf):
         
     indices = np.array(list(range(len(au))))
     np.random.shuffle(indices)
-    comb_array = util.random_combination(indices.tolist(), 2, upper_bound)
+    comb_array = single_util.random_combination(indices.tolist(), 2, upper_bound)
     
     A = []
     b = []
@@ -170,7 +170,7 @@ def compute_focal_failure_single_weighted_lstq(au, av, ar_conf, al_conf, L, t1, 
         
     indices = np.array(list(range(len(au))))
     np.random.shuffle(indices)
-    comb_array = util.random_combination(indices.tolist(), 2, upper_bound)
+    comb_array = single_util.random_combination(indices.tolist(), 2, upper_bound)
     
     A = []
     b = []

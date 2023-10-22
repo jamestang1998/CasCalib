@@ -146,5 +146,9 @@ dmypy.json
 /.ipynb_checkpoints
 *.pyc
 
-#Frames inside the CalibSingleFromP2D
+#frames,results and plots inside the CalibSingleFromP2D
 CalibSingleFromP2D/Frames/
+CalibSingleFromP2D/plots/
+CalibSingleFromP2D/results/
+
+
