@@ -1,7 +1,7 @@
 import os
 import sys
 # Might have to add to path
-sys.path.append('CalibS') 
+# sys.path.append('CalibS') 
 from single_util import *
 from single_data import *
 from single_run_calibration_ransac import *
@@ -110,7 +110,6 @@ for vid in campus_array_names:
         points_2d = json.load(f)
     
     datastore_cal = single_data.coco_mmpose_dataloader(points_2d, bound_lower = 100, bound = 2500)  
-
     frame_dir = 'CalibSingleFromP2D/Frames/' + vid + '/00000000.jpg'
     img = mpimg.imread(frame_dir)
     
