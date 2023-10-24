@@ -81,10 +81,10 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
                 datastore_filtered: dcpose_dataloader object.
                     The filtered datastore
     '''
-    if os.path.isdir('./plots') == False:
-        os.mkdir('./plots')
+    if os.path.isdir('CalibSingleFromP2D/plots') == False:
+        os.mkdir('CalibSingleFromP2D/plots')
     
-    threshold_euc, threshold_cos, angle_filter_video, confidence, termination_cond, num_points, h, iter, focal_lr, point_lr = util.hyperparameter(hyperparam_dict)
+    threshold_euc, threshold_cos, angle_filter_video, confidence, termination_cond, num_points, h, iter, focal_lr, point_lr = single_util.hyperparameter(hyperparam_dict)
     
     if img is not None:
         img_width = img.shape[1] #width of image
@@ -94,7 +94,7 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
         print("NOT ENOUGH POINTS")
         return None, None, None, None, None, None, None, None
 
-    datastore_filtered = util.select_indices(datastore, angle_filter_video, confidence, img_width, img_height, skip_frame, min_size = min_size, max_len = max_len)
+    datastore_filtered = single_util.select_indices(datastore, angle_filter_video, confidence, img_width, img_height, skip_frame, min_size = min_size, max_len = max_len)
 
     print(datastore_filtered.__len__(), " DATA STORE FILTERED")
 
@@ -105,14 +105,14 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
     #if os.path.isdir('./plots/run_' + run_name) == False:
     #    os.mkdir('./plots/run_' + run_name)
 
-    if os.path.isdir('./plots/all_' + run_name) == False:
-        os.mkdir('./plots/all_' + run_name)
+    if os.path.isdir('CalibSingleFromP2D/plots/all_' + run_name) == False:
+        os.mkdir('CalibSingleFromP2D/plots/all_' + run_name)
     
-    au, av, hu, hv, h_conf, al_conf, ar_conf = util.get_ankles_heads(datastore_filtered, list(range(datastore_filtered.__len__())))
+    au, av, hu, hv, h_conf, al_conf, ar_conf = single_util.get_ankles_heads(datastore_filtered, list(range(datastore_filtered.__len__())))
     print(len(au), " ANKLE LENGTH")
     joint_conf = (h_conf + al_conf + ar_conf)/3.0
 
-    calibration_dict = ransac_refine.ransac_search(datastore_filtered, termination_cond, img_width, img_height, num_points, threshold_euc, threshold_cos, h, f = f_init, image_index = None, calibration_dictionary_best = None, use_init = use_init, sort = sort, cond_tolerance = cond_tolerance, search_upper  = search_upper, search_lower = search_lower, ransac_search_step = ransac_search_step, post_ransac_search_step = post_ransac_search_step)
+    calibration_dict = single_ransac_refine.ransac_search(datastore_filtered, termination_cond, img_width, img_height, num_points, threshold_euc, threshold_cos, h, f = f_init, image_index = None, calibration_dictionary_best = None, use_init = use_init, sort = sort, cond_tolerance = cond_tolerance, search_upper  = search_upper, search_lower = search_lower, ransac_search_step = ransac_search_step, post_ransac_search_step = post_ransac_search_step)
 
     ransac_focal = calibration_dict['focal_predicted']
 
@@ -125,7 +125,7 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
 
     #################################
     calibration_dictionary = {}
-    ankle_u, ankle_v, head_u, head_v, h_conf, al_conf, ar_conf = util.get_ankles_heads(datastore_filtered, list(calibration_dict['inlier_index']))
+    ankle_u, ankle_v, head_u, head_v, h_conf, al_conf, ar_conf = single_util.get_ankles_heads(datastore_filtered, list(calibration_dict['inlier_index']))
     joint_conf = (h_conf + al_conf + ar_conf)/3.0
     print(h, " THE HEIGHT !!!!!!")
 
@@ -145,7 +145,7 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
         #num_points = 500
     
     print(len(head_v), len(ankle_v), len(head_u), len(ankle_u), len(h_conf), len(al_conf), len(ar_conf), " HEAD AND ANKLE !!! ")
-    calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = calibration_singlefocal.calibration_focalpoint_lstq_failure_single(len(ankle_u), head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0, focal_predicted = f_init, upper_bound = np.inf, h_conf = h_conf, al_conf = al_conf, ar_conf = ar_conf)
+    calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = single_calibration_singlefocal.calibration_focalpoint_lstq_failure_single(len(ankle_u), head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0, focal_predicted = f_init, upper_bound = np.inf, h_conf = h_conf, al_conf = al_conf, ar_conf = ar_conf)
     focal_batch = calibration_dictionary['focal_predicted']
     if calibration_dictionary['normal'] is None or calibration_dictionary['calcz'] is None :
         print("FAILED")
@@ -164,8 +164,6 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
     print(calibration_dictionary['normal'], " n BATCH")
     
     #**********************************
-    #focal_opt, normal_opt, ankleWorld_opt, error_opt, focal_array_opt, normal_array_opt = pytorch_optimizer.optimization_focal_dlt_torch(calibration_dictionary, ankle_u, ankle_v, head_u, head_v, int(img_width/2.0), int(img_height/2.0), h, './plots/run_' + run_name + result_name, img, threshold_euc, threshold_cos, focal_lr = 1e-1, point_lr = 1e-3, iter = 10000, line_amount = 50, plot_scale = 1, conf_array = joint_conf)
-
     '''
     focal_opt, normal_opt, ankleWorld_opt, error_opt, focal_array_opt, normal_array_opt = pytorch_optimizer.single_view_optimization_torch_3d(calibration_dictionary, ankle_u, ankle_v, head_u, head_v, int(img_width/2.0), int(img_height/2.0), h, './plots/run_' + run_name + result_name, img, threshold_euc, threshold_cos, focal_lr = 1e-1, point_lr = 1e-3, iter = 10000, line_amount = 50, plot_scale = 1, conf_array = joint_conf)
     
@@ -184,7 +182,7 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
     t1 = img_width/2.0
     t2 = img_height/2.0
     
-    ankles = util.plane_ray_intersection_np(au[inlier_index], av[inlier_index], calibration_dictionary['cam_inv'], calibration_dictionary['normal'], calibration_dictionary['ankleWorld'])
+    ankles = single_util.plane_ray_intersection_np(au[inlier_index], av[inlier_index], calibration_dictionary['cam_inv'], calibration_dictionary['normal'], calibration_dictionary['ankleWorld'])
     ankles = np.transpose(ankles)
     
     focal_predicted = calibration_dictionary['focal_predicted']
@@ -196,12 +194,12 @@ def run_calibration_ransac(datastore, hyperparam_dict, img, img_width, img_heigh
 
     if img is not None:
 
-        plotting.plot_plane(au, av, hu, hv, './plots/all_' + run_name, img, calibration_dictionary, plot_scale, line_amount, str(result_name), threshold_euc, threshold_cos, h)
-        plotting.display_2d_grid(au, av, hu, hv, './plots/all_' + run_name, img, calibration_dictionary, plot_scale, line_amount, str(result_name), threshold_euc, threshold_cos, h)
+        single_plotting.plot_plane(au, av, hu, hv, 'CalibSingleFromP2D/plots/all_' + run_name, img, calibration_dictionary, plot_scale, line_amount, str(result_name), threshold_euc, threshold_cos, h)
+        single_plotting.display_2d_grid(au, av, hu, hv, 'CalibSingleFromP2D/plots/all_' + run_name, img, calibration_dictionary, plot_scale, line_amount, str(result_name), threshold_euc, threshold_cos, h)
     
-    ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, ppl_h_conf, ppl_al_conf, ppl_ar_conf = util.get_ankles_heads(datastore_filtered, list(inlier_index))
+    ppl_ankle_u, ppl_ankle_v, ppl_head_u, ppl_head_v, ppl_h_conf, ppl_al_conf, ppl_ar_conf = single_util.get_ankles_heads(datastore_filtered, list(inlier_index))
     
-    all_world_coordinates = util.plane_ray_intersection_np(ppl_ankle_u, ppl_ankle_v, calibration_dictionary['cam_inv'], calibration_dictionary['normal'], calibration_dictionary['ankleWorld'])
+    all_world_coordinates = single_util.plane_ray_intersection_np(ppl_ankle_u, ppl_ankle_v, calibration_dictionary['cam_inv'], calibration_dictionary['normal'], calibration_dictionary['ankleWorld'])
     
     return all_world_coordinates, calibration_dictionary['cam_matrix'], calibration_dictionary['normal'], calibration_dictionary['ankleWorld'], calibration_dictionary['focal_predicted'], focal_batch, ransac_focal, datastore_filtered
 

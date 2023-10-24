@@ -1,3 +1,87 @@
+class dcpose_dataloader():
+    def __init__(self, data_json):
+        '''
+        constructor for the dcpose_dataloader class, a class takes a json file of dcpose detections and creates an indexable object to easily access poses and keypoints.
+        Parameters: data: json object
+                        json file of open pose detections. If data is None, then initalize self.data as an empty array
+        Returns: None
+        '''
+        self.average_height = None
+
+        if data_json is None:
+            self.data = []
+            return
+
+        if not isinstance(data_json, list):
+            data_json = [data_json]
+        
+        #Middle is 'head_bottom'
+        keypoint_array = ['nose', 'middle', 'head_top', 'box1', 'box2', 'left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist', 'left_hip', 'right_hip', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle']
+        
+        data_array = []
+        for data in data_json:
+            for ppl in range(len(data["Info"])):
+                
+                pose = {}
+                frame_name = data["Info"][ppl]["image_path"]
+                for i in range(0, 17):
+                    keypoint_u = data["Info"][ppl]["keypoints"][i][0]
+                    keypoint_v = data["Info"][ppl]["keypoints"][i][1]
+                    confidence = data["Info"][ppl]["keypoints"][i][2]
+                    
+                    if keypoint_array[i] == 'box1' or keypoint_array[i] == 'box2':
+                        continue
+                    pose[keypoint_array[i]] = [keypoint_u, keypoint_v, confidence, frame_name]
+                    
+                data_array.append(pose)
+
+        self.data = data_array  
+
+    def __len__(self):
+        '''
+        Returns the length of self.data
+        
+        Parameters: None
+        Returns: output
+                    Length of self.data
+        '''
+        return len(self.data)
+    
+    def getitem(self, idx):  
+        '''
+        Gets each poses keypoint detections
+        
+        Parameters: idx: int
+                        index of pose
+        Returns: output: python dictionary
+                        dictionary of keypoints for each pose
+        '''
+        return self.data[idx]
+
+    def remove(self, idx):    
+        '''
+        Removes an index from self.data
+        
+        Parameters: idx: int
+                        index of pose
+        Returns: output: None
+        '''
+        self.data = self.data.pop(idx)
+        
+    def new_data(self, data):   
+        '''
+        Replaces self.data with a new array of keypoint dictionaries
+        
+        Parameters: data: array of dictionaries
+        Returns: output: None
+        '''
+        self.data = data
+
+    def get_height(self):
+        return self.average_height
+
+    def write_height(self, height):
+        self.average_height = height
    
 class coco_mmpose_dataloader():
     def __init__(self, data_json, scale_x = 1.0, scale_y = 1.0, bound_lower = 0, bound = None):
@@ -125,3 +209,6 @@ class coco_mmpose_dataloader():
     
     def writeData(self, data):  
         self.data = data
+
+    def write_height(self, height):  
+        self.average_height = height

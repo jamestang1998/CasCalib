@@ -3,6 +3,7 @@ import single_data
 from scipy import special
 import random as rand
 import json
+import torch
 
 
 def random_combination(image_index, num_points, termination_cond):
@@ -158,7 +159,6 @@ def select_indices(datastore, angle_filter_video, confidence, img_width, img_hei
     image_den = 4.0
     image_num = 3.0
     for i in range(0, datastore.__len__(), skip):
-
         pose_array = datastore.getitem(i)
 
         for d in range(len(pose_array)):
@@ -254,7 +254,6 @@ def select_indices(datastore, angle_filter_video, confidence, img_width, img_hei
 
     filtered_datastore = single_data.dcpose_dataloader(None)
     filtered_datastore.new_data(filtered_detections)
-
     filtered_datastore.write_height(np.array(height_array))
 
     print(filtered_datastore.__len__(), " Number of ankle for calibration")
@@ -389,3 +388,137 @@ def unit_vector(vector):
     '''
     eps = 1e-15
     return vector / (np.linalg.norm(vector) + eps)
+
+def matrix_cosine(x, y):
+    """ 
+    Computes the pairwise cosine distance for matrix rows
+    
+    Parameters: x: N by 2 np array
+                y: N by 2 np array
+    Returns:    output: np array
+                    Pairwise cosine distances of the rows of X and Y
+    """
+    return np.einsum('ij,ij->i', x, y) / (
+              np.linalg.norm(x, axis=1) * np.linalg.norm(y, axis=1) + 1e-15
+    )
+
+def basis_change_rotation_matrix(cam_matrix, cam_inv, init_point, normal, img_width, img_height):
+    """ 
+    Given the camera matrix and the ground plane, constructs the transformation matrix to convert the view into a birds eye perspective.
+    
+    Parameters: cam_matrix: (3,3) np.array
+                    Intrinsic camera matrix
+                cam_inv: (3,3) np.array
+                    Inverse camera matrix
+                init_point: (3,) np.array
+                    3d position of the ground plane
+                normal: (3,) normal
+                    Normal vector of the ground plane
+                img_width: float
+                    width of the image
+                img_height: float
+                    height of the image
+    Returns:    output: (3,3) np.array
+                    transformation matrix
+    """    
+    plane_world = np.squeeze(plane_ray_intersection_np([img_width/2.0], [img_height], cam_inv, normal, init_point))
+
+    p00, p00_3d = project_point_horiz_bottom(cam_matrix, cam_inv, [0,0], plane_world, normal, img_width, img_height)
+    p01, p01_3d = project_point_horiz_bottom(cam_matrix, cam_inv, [0,1], plane_world, normal, img_width, img_height)
+    p10, p10_3d = project_point_horiz_bottom(cam_matrix, cam_inv, [1,0], plane_world, normal, img_width, img_height)
+    p11, p11_3d = project_point_horiz_bottom(cam_matrix, cam_inv, [1,1], plane_world, normal, img_width, img_height)
+    
+    new_basis0 = p01_3d - p00_3d
+    new_basis1 = p10_3d - p00_3d
+    
+    new_basis0 = new_basis0/np.linalg.norm(new_basis0)
+    new_basis1 = new_basis1/np.linalg.norm(new_basis1)
+    
+    old_basis0 = np.array([1, 0, 0])
+    old_basis1 = np.array([0, 1, 0])
+    old_basis2 = np.array([0, 0, 1])
+    
+    C = np.zeros([3,3], dtype = float)
+    C[0] = [np.dot(new_basis0, old_basis0), np.dot(new_basis0, old_basis1), np.dot(new_basis0, old_basis2)]
+    C[1] = [np.dot(new_basis1, old_basis0), np.dot(new_basis1, old_basis1), np.dot(new_basis1, old_basis2)]
+    C[2] = [np.dot(normal, old_basis0), np.dot(normal, old_basis1), np.dot(normal, old_basis2)]
+       
+    z_rotation = np.zeros((3,3))
+    z_rotation[0] = [np.cos(np.pi/2.0), -1*np.sin(np.pi/2.0), 0]
+    z_rotation[1] = [np.sin(np.pi/2.0), np.cos(np.pi/2.0), 0]
+    z_rotation[2] = [0,0,1]
+    
+    flip = np.zeros((3,3))
+    flip[0] = [-1, 0, 0]
+    flip[1] = [0, 1, 0]
+    flip[2] = [0, 0, 1,]
+    
+    return flip @ z_rotation @ C
+
+def project_point_horiz_bottom(cam_matrix, cam_inv, p_plane, init_world, normal, img_width, img_height):
+    """ 
+    Finds finds 2d and 3d coordinates from plane coordinates
+    
+    Parameters: cam_matrix: (3,3) np.array
+                    intrinsic camera matrix
+                cam_inv: (3,3) np.array
+                    inverse intrinsic camera matrix
+                p_plane: (2,) list or array
+                    [x, y] coordinates in plane coordinates
+                init_world: (3,) np.array
+                    3d coordinate used to initlize the ground plane
+                normal: (3,) np.array
+                    normal vector of ground plane
+                img_width: int
+                    width of the image
+                img_height: int 
+                    height of the image
+    Returns:    np.array(p_px[:2]): (2,) array
+                    p_plane converted into camera coordinates
+                grid_location_3d_ij: (3,) array
+                    p_plane converted to world coordinates
+    """
+    plane_horiz_world = np.squeeze(plane_ray_intersection_np([img_width/2.0 + 1], [img_height], cam_inv, normal, init_world))
+
+    up_vector = np.array(plane_horiz_world) - np.array(init_world)
+    
+    up_vector = up_vector/np.linalg.norm(up_vector)
+
+    v = up_vector
+    #u = np.cross(v, normal)
+    u = np.cross(normal, v)
+    
+    #normalize 
+    v = v/np.linalg.norm(v)
+    u = u/np.linalg.norm(u)
+            
+    grid_location_3d_ij = init_world + p_plane[0]*v + p_plane[1]*u
+    
+    grid_location_2d_ij = perspective_transformation(cam_matrix, grid_location_3d_ij)
+    
+    return grid_location_2d_ij, grid_location_3d_ij
+
+def plane_line_intersection(x_0, x_1, normal, init_point):
+    """ 
+    Given a line defined by 2 3d points, computes the intersection of that line with the plane defined by normal and init_point
+    
+    Parameters: x_0: (3,3) np.array
+                    Starting point of the line
+                x_1: (3,3) np.array
+                    end point of the line
+                normal: (3,3) np.array
+                    Normal vector of the plane
+                init_point: (3,3) np.array
+                    3d position of the plane
+    Returns:    output: (3,) np.array
+                    3d coordinates of the intersection between the line and the plane
+    """        
+    ray = np.array(x_1) - np.array(x_0)
+        
+    scale = np.dot(normal, np.array(init_point) - np.array(x_0))/np.dot(normal, ray)
+        
+    point_x = np.squeeze(ray[0]*scale)
+    point_y = np.squeeze(ray[1]*scale)
+    point_z = np.squeeze(ray[2]*scale)
+
+    return np.array([point_x, point_y, point_z]) + np.array(x_0)

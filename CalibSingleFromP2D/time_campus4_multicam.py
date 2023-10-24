@@ -113,8 +113,8 @@ for vid in campus_array_names:
     frame_dir = 'CalibSingleFromP2D/Frames/' + vid + '/00000000.jpg'
     img = mpimg.imread(frame_dir)
     
-    (ankles, cam_matrix, normal, ankleWorld, focal, focal_batch, ransac_focal, datastore_filtered) = run_calibration_ransac.run_calibration_ransac(
-         datastore_cal, 'CalibSingleFromP2D/hyperparameter.json', img, 
+    (ankles, cam_matrix, normal, ankleWorld, focal, focal_batch, ransac_focal, datastore_filtered) = run_calibration_ransac(
+         datastore_cal, 'CalibSingleFromP2D/single_hyperparameter.json', img, 
          img.shape[1], img.shape[0], name, num, skip_frame = configuration['skip_frame'], 
          max_len = configuration['max_len'], min_size = configuration['min_size'])
     focal_array.append(cam_matrix[0][0])

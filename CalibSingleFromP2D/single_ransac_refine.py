@@ -166,10 +166,10 @@ def ransac(datastore, termination_cond, img_width, img_height, num_points = 3, t
     #for f in focal_array:
     for persons in point_set:        
         calibration_dictionary = {}
-        ankle_u, ankle_v, head_u, head_v, h_conf, al_conf, ar_conf = util.get_ankles_heads(datastore, persons)
+        ankle_u, ankle_v, head_u, head_v, h_conf, al_conf, ar_conf = single_util.get_ankles_heads(datastore, persons)
 
         #calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = calibration_singlefocal_head_ankle.calibration_focalpoint_lstq_failure_single(num_points, head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0,  h_conf =  h_conf, al_conf = al_conf, ar_conf = ar_conf)
-        calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = calibration_singlefocal.calibration_focalpoint_lstq_failure_single(num_points, head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0, focal_predicted = f,  h_conf =  h_conf, al_conf = al_conf, ar_conf = ar_conf)       
+        calibration_dictionary['normal'], calibration_dictionary['calcz'], calibration_dictionary['focal_predicted'], calibration_dictionary['cam_matrix'], calibration_dictionary['L'], calibration_dictionary['C'] = single_calibration_singlefocal.calibration_focalpoint_lstq_failure_single(num_points, head_v, ankle_v, head_u, ankle_u, h, img_width/2.0, img_height/2.0, focal_predicted = f,  h_conf =  h_conf, al_conf = al_conf, ar_conf = ar_conf)       
         if calibration_dictionary['focal_predicted'] is None:
             continue
         if calibration_dictionary['focal_predicted'] <= 0.0:
@@ -200,7 +200,7 @@ def ransac(datastore, termination_cond, img_width, img_height, num_points = 3, t
         head_vect_ransac_pred = head_ppl_2d - ankle_ppl_2d
         head_vect_2d_pred = head_2d_pred - ankle_2d_pred
 
-        error_cos = np.ones(calibration_dictionary['world_coordinates'].shape[1]) - util.matrix_cosine(np.transpose(head_vect_ransac_pred), np.transpose(head_vect_2d_pred))
+        error_cos = np.ones(calibration_dictionary['world_coordinates'].shape[1]) - single_util.matrix_cosine(np.transpose(head_vect_ransac_pred), np.transpose(head_vect_2d_pred))
         error_euc = np.linalg.norm(head_ppl_2d - head_2d_pred, axis=0)/np.linalg.norm(head_vect_2d_pred, axis=0)
         error_norm_array = error_euc < threshold_euc 
         error_cos_array = error_cos < threshold_cos
