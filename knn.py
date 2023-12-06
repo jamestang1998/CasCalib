@@ -1,8 +1,5 @@
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
-import tslearn
-from tslearn import clustering
-import util
 
 '''
 d1 = np.array(

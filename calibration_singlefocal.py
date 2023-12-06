@@ -145,7 +145,7 @@ def compute_focal_failure_single_lstq(au, av, L, t1, t2, upper_bound = np.inf):
     return f1
 
 def compute_focal_failure_single_weighted_lstq(au, av, ar_conf, al_conf, L, t1, t2, upper_bound = np.inf):
-    
+       
     '''
     computes the focal length given ankle detections and taking the average focal length over all pairs of ankles
     

@@ -1,97 +1,23 @@
-import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.spatial.distance import directed_hausdorff
 import os
-from sklearn.metrics.pairwise import cosine_similarity
-import filter
 import matplotlib.pyplot as plt
-import math
 import knn
-import random
-import plotly.graph_objects as go
-
-from scipy.spatial.distance import cdist
-from simpleicp import PointCloud, SimpleICP
 import Icp2d
-
-from scipy import signal, fftpack
-from scipy.interpolate import RectBivariateSpline
 from scipy.interpolate import UnivariateSpline
-
 import numpy as np
-from scipy.signal import correlate
-
 import numpy as np
-from scipy.spatial.distance import euclidean
-import open3d as o3d
+import filter
 
-def dict_smooth(data, min_size = 2):
-    print(data)
+def time_knn(best_scale, best_shift, data_sync, data_ref):
+    shifted_time = best_scale*np.array(list(data_sync)) + best_shift
+    argmins, argmins1, d2_sorted = knn.knn(np.expand_dims(list(data_ref), axis = 1), np.expand_dims(shifted_time, axis = 1))
 
-    track_dict = {}
-    for fr in list(data.keys()):
-        for tr in list(data[fr].keys()):
+    sync_dict = {}
+    for i in range(len(argmins)):
+        sync_dict[list(data_ref)[argmins[i]]] = int(list(data_sync)[argmins1[i]])
 
-            if tr in track_dict: 
-                track_dict[tr].append({'frame': fr, 'coord': data[fr][tr][0:2]})
-            else:
-                track_dict[tr] = [{'frame': fr, 'coord': data[fr][tr][0:2]}]
-
-    points_dict = {}
-    for t in track_dict.keys():
-        
-        points_array = []
-        frame_array = []
-        frame_actual_array = []
-        points_actual_array = []
-        if len(track_dict[t]) < min_size:
-            #print("is it here?")
-            continue
-        
-        x_plot = []
-        y_plot = []
-        frame_plot = []
-        #print(track_dict[t])
-        #print("************************I")
-        for i in range(len(track_dict[t])):
-            
-            x_plot.append(track_dict[t][i]["coord"][0])
-            y_plot.append(track_dict[t][i]["coord"][1])
-            frame_plot.append(track_dict[t][i]["frame"])
-        
-        frame_plot, x_plot, y_plot = track_smooth(frame_plot, x_plot, y_plot)
-
-        for i in range(len(frame_plot)):
-            if frame_plot[i] not in points_dict:
-                points_dict[frame_plot[i]] = {t: [x_plot[i], y_plot[i], 0.0, 0.0]}
-            else:
-                points_dict[frame_plot[i]][t] = [x_plot[i], y_plot[i], 0.0, 0.0]
-        #print(t, points_dict[t]," HIIIIIIIIIIIIIIIIIIIASDDDDDDDDDDDDDDDDDDDDDDDDDDD")
-    return points_dict
-
-def track_smooth(t, x, y):
-    # Create the splines for x and y separately
-    #print(x, " THIS IS X")
-    #print(np.var(x), len(x), " LEN X")
-    print(t)
-    stop
-    spline_x = UnivariateSpline(t, x, k=3, s=np.var(x)*len(x))
-    spline_y = UnivariateSpline(t, y, k=3, s=np.var(y)*len(y))
-
-    # Example evaluation points
-    t_eval = np.array(list(range(min(t), max(t))))  # Adjust the range and number of points as needed
-
-    # Evaluate the splines
-    x_smooth = spline_x(t_eval)
-    y_smooth = spline_y(t_eval)
-    return t_eval, x_smooth, y_smooth 
-def corr(a, b):
-
-    a_b = np.argmax(signal.correlate(a,b))
-    b_a = np.argmax(signal.correlate(b,a))
-    
-    return 
+    return sync_dict 
 
 def time_all(data_ref, data_sync, save_dir = None, sync = True, name = '', window = 1, dilation = 1, search_div = 6.0, init_sync = []):
     
@@ -105,13 +31,7 @@ def time_all(data_ref, data_sync, save_dir = None, sync = True, name = '', windo
         
         if len(init_sync) != 0:
             shift_array_init = init_sync 
-        #print(data_ref)
-        #best_shift, best_scale, sync_dict = time_align_corr(data_ref, data_sync[i], save_dir = save_dir, name = str(i) + '_' + name, sync = sync, scale_search = scale_array_init, shift_search = shift_array_init, trial_name = 'init')
         best_shift, best_scale, sync_dict = time_align_corr(data_ref, data_sync[i], save_dir = save_dir, name = str(i) + '_' + name, sync = sync, scale_search = scale_array_init, shift_search = shift_array_init, trial_name = 'init', window = window, dilation = dilation)
-        #scale_array_init = [best_scale]
-        #shift_array_init = list(range(int(best_shift) - 20, int(best_shift) + 20))
-        #best_shift, best_scale, sync_dict = time_align_corr(data_ref, data_sync[i], save_dir = save_dir, name = str(i) + '_' + name, window = 1, dilation = 15, sync = sync, scale_search = scale_array_init, shift_search = shift_array_init, trial_name = 'refine')
-
         best_shift_array.append(best_shift)
         best_scale_array.append(best_scale)
         sync_dict_array.append(sync_dict)
@@ -128,38 +48,15 @@ def union_and_pad(x1, y1, x2, y2):
 
     return x_union, y1_padded, y2_padded
 
-def time_knn(best_scale, best_shift, data_sync, data_ref):
-    shifted_time = best_scale*np.array(list(data_sync)) + best_shift
-    argmins, argmins1, d2_sorted = knn.knn(np.expand_dims(list(data_ref), axis = 1), np.expand_dims(shifted_time, axis = 1))
-
-    sync_dict = {}
-    for i in range(len(argmins)):
-        sync_dict[list(data_ref)[argmins[i]]] = int(list(data_sync)[argmins1[i]])
-
-    return sync_dict 
-
-def time_knn_array(best_scale, best_shift, data_ref):
-    #shifted_time = best_scale*np.array(data_sync) + best_shift
-    #argmins, argmins1, d2_sorted = knn.knn(np.expand_dims(list(data_ref.keys()), axis = 1), np.expand_dims(shifted_time, axis = 1))
-
-    sync_dict = {}
-    for i in range(len(data_ref)):
-        sync_dict[data_ref[i]] = (data_ref[i] - best_shift)/best_scale
-    return sync_dict 
-
 def time_align_corr(data_ref, data_sync, save_dir = None, name = None, end = True, window = 1, dilation = 1, thresh_mag = 0.0, sync = True, trial_name = 'init', scale_search = [1], shift_search = [0]):
     
+    if os.path.isdir(save_dir + '/search_time') == False:
+        os.mkdir(save_dir + '/search_time')
     if os.path.isdir(save_dir + '/search_time/' + name) == False:
         os.mkdir(save_dir + '/search_time/' + name)
-
-    #print(data_ref)
-    #print(data_sync)
-
-    #data_interp_ref = data_ref#Icp2d.interpolate(data_ref, 2*dilation)
-    #data_interp_sync = data_sync#Icp2d.interpolate(data_sync, 2*dilation)
     
-    data_interp_ref = Icp2d.get_track(data_ref, 2*dilation)
-    data_interp_sync = Icp2d.get_track(data_sync, 2*dilation)
+    data_interp_ref = get_track(data_ref, 2*dilation)
+    data_interp_sync = get_track(data_sync, 2*dilation)
 
     ref_vel_array = []
     ref_vel_dict = {} 
@@ -282,10 +179,7 @@ def time_align_corr(data_ref, data_sync, save_dir = None, name = None, end = Tru
 
     ax3.scatter(np.array(list(ref_vel_dict_avg.keys())), np.array(list(ref_vel_dict_avg.values())))
     ax3.scatter(np.array(list(sync_vel_dict_avg.keys())), np.array(list(sync_vel_dict_avg.values())))
-    #plt.show()
-            
-    #sync_average = filter.window_average(sync_vel_init, window = window)
-    #############################################################
+
     best_sync_time = None
     best_sync_average = None
 
@@ -297,12 +191,10 @@ def time_align_corr(data_ref, data_sync, save_dir = None, name = None, end = Tru
 
     error_array = []
     shift_array = []
-    #scale_search = [1], shift_search
-    #shift_val = list(range(-int(sync_time_init.shape[0]/30), int(sync_time_init.shape[0]/30)))
-    #scale_val = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2.0, 2.25,2.5,2.75,3.0, 3.25, 3.5]
+
     shift_val = shift_search
     scale_val = scale_search
-    #scale_val = list(np.linspace(0.25, 4, 10)) + [1.0]
+
     if sync == False:
         shift_val = [0]
         scale_val = [1]
@@ -342,23 +234,14 @@ def time_align_corr(data_ref, data_sync, save_dir = None, name = None, end = Tru
         correlation_array_loop = []
         for shift in shift_val:#list(range(-int(sync_time_init.shape[0]/64), int(sync_time_init.shape[0]/64))):
             sync_time = scale*np.array(list(sync_vel_dict_avg.keys())) + shift
-            #sync_time = scale*np.array(list(sync_vel_array)) + shift
 
-            #sync_vel = np.array(list(sync_vel_dict_avg.values()))
-
-            #sync_average = filter.window_average(sync_vel/scale, window = window)
             sync_average = sync_vel_array
             sync_index = np.where(sync_average > thresh_mag)[0]
 
             argmins, argmins1, d2_sorted = knn.knn(np.expand_dims(ref_time, axis = 1), np.expand_dims(sync_time, axis = 1))
 
             x_union, y1_padded, y2_padded = union_and_pad(ref_time, ref_average, sync_time, sync_average)
-            #print(x_union, " x union")
-            #print(y1_padded, " y1 padded ")
-            #print(y2_padded, " y2_padded")
 
-            #correlation = np.corrcoef(sync_average[argmins1], ref_average[argmins], rowvar = True)[0,1]
-            #mean_error = np.mean(np.abs(sync_average[argmins1] - ref_average[argmins]))
             correlation = np.corrcoef(y1_padded, y2_padded, rowvar = True)[0,1]
             mean_error = np.mean(np.abs(y1_padded - y2_padded))
             
@@ -370,13 +253,6 @@ def time_align_corr(data_ref, data_sync, save_dir = None, name = None, end = Tru
                 best_scale = scale
                 best_shift = shift
                 best_correlation = correlation
-                '''
-                best_sync_time = sync_time[argmins1]
-                best_sync_average = sync_average[argmins1]
-
-                best_ref_time = ref_time[argmins]
-                best_ref_average = ref_average[argmins]
-                '''
                 
                 best_sync_time = x_union#sync_time
                 best_sync_average = y2_padded
@@ -433,12 +309,7 @@ def time_align_corr(data_ref, data_sync, save_dir = None, name = None, end = Tru
         #ax2.plot(shift_array, error_array, c = 'r')
         ax2.scatter(shift_array, error_array, c = 'r')
         ax2.set_title(str(best_correlation))
-        '''
-        if name is not None:
-            fig1.savefig(save_dir + '/search_time/' + name + '/' + 'error_' + str(name) + '_' + str(best_shift) + '_' + str(best_scale) +'_' + '.png')
-        else:
-            fig1.savefig(save_dir + '/search_time/' + name + '/' + 'error_' + str(best_shift) + '_' + str(best_scale) +'_' + '.png')  
-        '''
+
         plt.close('all')
 
     shifted_time = best_scale*np.array(list(data_sync.keys())) + best_shift
@@ -450,3 +321,40 @@ def time_align_corr(data_ref, data_sync, save_dir = None, name = None, end = Tru
 
     #stop
     return best_shift, best_scale, sync_dict
+
+def get_track(data, min_size = 2):
+    
+    print(data)
+
+    mean_array = []
+    track_dict = {}
+    for fr in list(data.keys()):
+        print(data[fr], " THE DATA")
+        for tr in list(data[fr].keys()):
+            
+            mean_array.append(data[fr][tr][0:2])
+            if tr in track_dict: 
+                track_dict[tr].append({'frame': fr, 'coord': data[fr][tr][0:2]})
+            else:
+                track_dict[tr] = [{'frame': fr, 'coord': data[fr][tr][0:2]}]
+
+    mean_center = np.mean(mean_array, axis = 0)
+    points_dict = {}
+    for t in track_dict.keys():
+        
+        points_array = []
+        frame_array = []
+        frame_actual_array = []
+        points_actual_array = []
+            
+        for i in range(len(track_dict[t])):
+
+            points_array.append(track_dict[t][i]['coord'] - mean_center)
+            frame_array.append(track_dict[t][i]['frame'])
+
+            points_actual_array.append(track_dict[t][i]['coord'] - mean_center)
+            frame_actual_array.append(track_dict[t][i]['frame'])
+        
+        points_dict[t] = {'points': points_array, "frame": frame_array, 'points_actual': points_actual_array, 'frame_actual': frame_actual_array}
+
+    return points_dict
