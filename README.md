@@ -1,9 +1,16 @@
-# CasCalib
-Implemented by James Tang based on https://open.library.ubc.ca/soa/cIRcle/collections/ubctheses/24/items/1.0437869
+## CasCalib : cascaded calibration for motion capture from sparse unsynchronized cameras
+
+# [Thesis](https://open.library.ubc.ca/soa/cIRcle/collections/ubctheses/24/items/1.0437869) | [Mirror-Aware Neural Humans](https://arxiv.org/abs/2309.04750)
 
 Use the Functions in the following order in order to get multiview camera calibrations from human pose detections. You can see how this works in __main__.py within CasCalib.
 
 # Single View Calibration
+
+You can run the single view calibration by simply running the following line:
+```
+python run_single_view.py <path_to_frame> <path_to_detections>
+```
+
 Use run_calibration_ransac from run_calibration_ransac.py to get the camera calibration for single views. 
 
 The outputs are:

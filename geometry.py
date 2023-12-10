@@ -75,7 +75,7 @@ def camera_to_plane(data, cam_matrix, plane_matrix, init_world, normal, img_widt
 
     rotate_only = []
 
-
+    return_list = []
     for fr in list(data.keys()):
 
         return_dict[fr] = {}
@@ -103,7 +103,8 @@ def camera_to_plane(data, cam_matrix, plane_matrix, init_world, normal, img_widt
             all_y.append(ankle_plane_coord[1])
             all_z.append(ankle_plane_coord[2])
 
-    return return_dict
+            return_list.append(ankle_plane_coord[0:2].tolist())
+    return return_dict, return_list
 
 # Input: expects 3xN matrix of points
 # Returns R,t
