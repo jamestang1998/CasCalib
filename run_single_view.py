@@ -2,27 +2,28 @@
 # sys.path.append('CalibS') 
 import sys
 sys.path.append('../../CalibSingleFromP2D/dlt_calib') 
+import pickle 
 
 from util import *
 from run_calibration_ransac import *
 from eval_human_pose import *
 import json
 from datetime import datetime
-import csv
+#import csv
 import matplotlib.image as mpimg
 import os
-import time_align
+#import time_align
 import numpy as np
 import geometry
-import plotting 
+#import plotting 
 import multiview_utils
-import ICP
-import bundle_adjustment
-import eval_functions
-import torch
-from xml.dom import minidom
-import math 
-import plotting_multiview
+#import ICP
+#import bundle_adjustment
+#import eval_functions
+#import torch
+#from xml.dom import minidom
+#import math 
+#import plotting_multiview
 
 today = datetime.now()
 
@@ -69,7 +70,11 @@ gt_intrinsics_array = []
 with open(sys.argv[2], 'r') as f:
     points_2d = json.load(f)
 
-datastore_cal = data.coco_mmpose_dataloader(points_2d, bound_lower = 0, bound = np.inf)  
+if sys.argv[3] == "0":
+    datastore_cal = data.coco_mmpose_dataloader(points_2d)  
+elif sys.argv[3] == "1":
+    datastore_cal = data.alphapose_dataloader(points_2d)
+
 frame_dir = sys.argv[1]
 img = mpimg.imread(frame_dir)
 
@@ -79,15 +84,18 @@ img = mpimg.imread(frame_dir)
         max_len = configuration['max_len'], min_size = configuration['min_size'], save_dir = 'outputs/single_view_' + name, plotting_true = False)
 focal_array.append(cam_matrix[0][0])
 calib_array.append({'cam_matrix': cam_matrix, 'ground_normal': normal, 'ground_position': ankleWorld})
-#print(ankles, cam_matrix, normal)
+#print(ankles, cam_matrix, normal) 
 
 #########################
 save_dict = {"cam_matrix":cam_matrix, "ground_normal":normal, "ground_position":ankleWorld}
 ##################################
-datastore = data.coco_mmpose_dataloader(points_2d, bound_lower = 0, bound = np.inf) 
+if sys.argv[3] == "0":
+    datastore = data.coco_mmpose_dataloader(points_2d)  
+elif sys.argv[3] == "1":
+    datastore = data.alphapose_dataloader(points_2d)
+
 data_2d = multiview_utils.get_ankles_heads_dictionary(datastore, cond_tol = confidence)
 pose_2d = multiview_utils.get_ankles_heads_pose_dictionary(datastore, cond_tol = confidence)
-print(len(pose_2d), len(data_2d), " THIS IS POSE 2D")
 
 ankle_head_2d_array.append(data_2d)
 pose_2d_array.append(pose_2d)
@@ -100,10 +108,14 @@ plane_data_2d, plane_list  = geometry.camera_to_plane(data_2d, cam_matrix, plane
 
 #print(plane_data_2d.values(), " HIII")
 ##################################
-print("HIIASD")
-save_dict = {"cam_matrix":cam_matrix.tolist(), "ground_normal":normal.tolist(), "ground_position":ankleWorld.tolist(), "ankles": plane_list }
-print("************")
-print(save_dict)
-calibration_path = 'outputs/single_view_' + name + '/calibration.json'
-with open(calibration_path , 'w') as json_file:
+#print("HIIASD")
+#round_normal, cam_matrix, depth_Z, ankleworld
+save_dict = {"cam_matrix":cam_matrix.tolist(), "ground_normal":normal.tolist(), "ankleworld":ankleWorld.tolist(), "ankles": plane_list }
+#print("************")
+#print(save_dict)
+calibration_path = 'outputs/single_view_' + name
+with open(calibration_path  + '/calibration.json', 'w') as json_file:
     json.dump(save_dict, json_file)
+
+with open(calibration_path + '/calibration.pickle', 'wb') as picklefile:
+    pickle.dump(save_dict, picklefile)

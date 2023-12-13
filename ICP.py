@@ -13,7 +13,7 @@ import knn
 import random
 
 from scipy.spatial.distance import cdist
-from simpleicp import PointCloud, SimpleICP
+#from simpleicp import PointCloud, SimpleICP
 import Icp2d
 import multiview_utils
 
