@@ -31,6 +31,7 @@ run demo for single view calibration.
 ```
 python run_single_view.py example_data/frames/terrace1-c0_avi/00000000.jpg example_data/detections/result_terrace1-c0_.json 0
 ```
+The results will be in the outputs folder in the folder called "single_view_<date>_<time>"
 
 ## Single View Calibration
 
