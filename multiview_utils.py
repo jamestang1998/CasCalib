@@ -139,7 +139,14 @@ def get_ankles_heads_pose_dictionary(datastore, cond_tol = 0.8, keep = -1, keep_
 
 
             ppl.pop("bbox", None)
-            dict_2d[fr][ppl['id']] = ([ankle_x, ankle_y, head_x, head_y, ppl, ankle_left_conf, ankle_right_conf, head_conf])
+            if 'id' in ppl:
+                dict_2d[fr][ppl['id']] = ([ankle_x, ankle_y, head_x, head_y, ankle_left_conf, ankle_right_conf, head_conf])
+            else:
+                if 0 not in dict_2d[fr]:
+                    dict_2d[fr][0] = ([ankle_x, ankle_y, head_x, head_y, ankle_left_conf, ankle_right_conf, head_conf])
+                else:
+                    new_key = max(list(dict_2d[fr].keys())) + 1
+                    dict_2d[fr][new_key] = ([ankle_x, ankle_y, head_x, head_y, ankle_left_conf, ankle_right_conf, head_conf])
    
         if len(dict_2d[fr]) == 0:
             dict_2d.pop(fr, None)
@@ -211,7 +218,17 @@ def get_ankles_heads_dictionary(datastore, cond_tol = 0.8, keep = -1, keep_list 
             #head_y = (datastore.getitem(ppl)["Thorax"][1])
 
             head_conf = (ppl["left_shoulder"][2] + ppl["right_shoulder"][2])/2.0
-            dict_2d[fr][ppl['id']] = ([ankle_x, ankle_y, head_x, head_y, ankle_left_conf, ankle_right_conf, head_conf])
+
+            if 'id' in ppl:
+                dict_2d[fr][ppl['id']] = ([ankle_x, ankle_y, head_x, head_y, ankle_left_conf, ankle_right_conf, head_conf])
+            else:
+                if 0 not in dict_2d[fr]:
+                    dict_2d[fr][0] = ([ankle_x, ankle_y, head_x, head_y, ankle_left_conf, ankle_right_conf, head_conf])
+                else:
+                    new_key = max(list(dict_2d[fr].keys())) + 1
+                    dict_2d[fr][new_key] = ([ankle_x, ankle_y, head_x, head_y, ankle_left_conf, ankle_right_conf, head_conf])
+
+        
         if len(dict_2d[fr]) == 0:
             dict_2d.pop(fr, None)
 

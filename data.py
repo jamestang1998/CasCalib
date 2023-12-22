@@ -1,3 +1,114 @@
+import pdb
+#pdb.set_trace()
+
+class alphapose_dataloader():
+    def __init__(self, data_json):
+        '''
+        constructor for the dcpose_dataloader class, a class takes a json file of dcpose detections and creates an indexable object to easily access poses and keypoints.
+        Parameters: data: json object
+                        json file of open pose detections. If data is None, then initalize self.data as an empty array
+        Returns: None
+        '''
+        self.average_height = None
+
+        if data_json is None:
+            self.data = []
+            return
+        #Thorax = neck
+        keypoint_array = ["Nose", "LEye", "REye", "LEar", "REar", "left_shoulder", "right_shoulder", "LElbow", "RElbow", "LWrist", "RWrist", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle", "Head", "Neck", "Hip", "LBigToe", "RBigToe", "LSmallToe", "RSmallToe", "LHeel", "RHeel"]
+        
+        data_obj = {}
+        for img in range(0, len(data_json)):
+            pose = {}
+
+            #if len(list(data_obj.keys())) == 100:
+            #    break
+            '''
+            {0,  "Nose"},
+            {1,  "LEye"},
+            {2,  "REye"},
+            {3,  "LEar"},
+            {4,  "REar"},
+            {5,  "LShoulder"},
+            {6,  "RShoulder"},
+            {7,  "LElbow"},
+            {8,  "RElbow"},
+            {9,  "LWrist"},
+            {10, "RWrist"},
+            {11, "LHip"},
+            {12, "RHip"},
+            {13, "LKnee"},
+            {14, "Rknee"},
+            {15, "LAnkle"},
+            {16, "RAnkle"},
+            {17,  "Head"},
+            {18,  "Neck"},
+            {19,  "Hip"},
+            {20, "LBigToe"},
+            {21, "RBigToe"},
+            {22, "LSmallToe"},
+            {23, "RSmallToe"},
+            {24, "LHeel"},
+            {25, "RHeel"},
+            '''
+            #fig, ax = plt.subplots()
+            #if int(data_json["Info"][img]["frame"]) > 30:
+            #    break
+            #if int(data_json["Info"][img]["frame"]) != 154:
+            #    continue
+            kp_name = 0
+            for i in range(0, 51, 3):
+                keypoint_u = (data_json[img]["keypoints"][i])
+                keypoint_v = (data_json[img]["keypoints"][i + 1])
+                confidence = (data_json[img]["keypoints"][i + 2])
+                pose[keypoint_array[kp_name]] = [keypoint_u, keypoint_v, confidence]
+                    
+                pose[keypoint_array[kp_name]] = [keypoint_u, keypoint_v, confidence]
+                
+                #ax.scatter(keypoint_u, keypoint_v)
+                #ax.annotate(keypoint_array[i] + ' ' + str(i), (keypoint_u, keypoint_v))
+                kp_name = kp_name + 1
+
+            frame_name = data_json[img]["image_id"]
+            #print(frame_name, " THIS IS THE FRANE")
+            if int(frame_name.split(".")[0]) in data_obj:
+                data_obj[int(frame_name.split(".")[0])].append(pose)
+            else:
+                data_obj[int(frame_name.split(".")[0])] = [pose]
+
+        self.data = data_obj
+
+    def __len__(self):
+        '''
+        Returns the length of self.data
+        
+        Parameters: None
+        Returns: output
+                    Length of self.data
+        '''
+        return len(self.data)
+    
+    def getitem(self, idx):  
+        '''
+        Gets each poses keypoint detections
+        
+        Parameters: idx: int
+                        index of pose
+        Returns: output: python dictionary
+                        dictionary of keypoints for each pose
+        '''
+        key = list(self.data.keys())[idx]
+        return self.data[key]
+    
+    def getData(self):  
+        return self.data
+    
+    def writeData(self, data):  
+        self.data = data
+
+    def write_height(self, height):  
+        self.average_height = height
+
 class vitpose_easy_dataloader():
     def __init__(self, data_json):
         '''
