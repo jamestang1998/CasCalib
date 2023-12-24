@@ -1,7 +1,7 @@
 # CasCalib : cascaded calibration for motion capture from sparse unsynchronized cameras
 ## [Technical report](https://open.library.ubc.ca/soa/cIRcle/collections/ubctheses/24/items/1.0437869)
 >**CasCalib**\
->[James Tang](https://www.linkedin.com/in/james-tang-279332196/?originalSubdomain=ca), [author name](author online profile), [author name](author online profile), , [Bastian Wandt](https://bastianwandt.de/), and [Helge Rhodin](http://helge.rhodin.de/)\
+>[James Tang](https://www.linkedin.com/in/james-tang-279332196/?originalSubdomain=ca), [Daniel Ajisafe](https://danielajisafe.github.io/), [Shashwat Suri](https://www.linkedin.com/in/shashwat-suri-88807a13b/), , [Bastian Wandt](https://bastianwandt.de/), and [Helge Rhodin](http://helge.rhodin.de/)
 
 Use the Functions in the following order in order to get multiview camera calibrations from human pose detections. You can see how this works in __main__.py within CasCalib.
 
