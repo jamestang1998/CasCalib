@@ -1,5 +1,6 @@
 import pdb
 #pdb.set_trace()
+import numpy as np
 
 class alphapose_dataloader():
     def __init__(self, data_json):
@@ -283,7 +284,7 @@ class dcpose_dataloader():
         self.average_height = height
    
 class coco_mmpose_dataloader():
-    def __init__(self, data_json, scale_x = 1.0, scale_y = 1.0, bound_lower = 0, bound = None):
+    def __init__(self, data_json, scale_x = 1.0, scale_y = 1.0, bound_lower = 0, bound = None, random = None):
         '''
         constructor for the dcpose_dataloader class, a class takes a json file of dcpose detections and creates an indexable object to easily access poses and keypoints.
         Parameters: data: json object
@@ -340,8 +341,16 @@ class coco_mmpose_dataloader():
             #    continue
 
             for i in range(len(keypoint_array)):
-                keypoint_u = scale_x*data_json["Info"][img]['keypoints'][i][0]
-                keypoint_v = scale_y*data_json["Info"][img]['keypoints'][i][1]
+                
+                s = 0 
+                s1 = 0
+                if random is not None and random != 0:
+                    s = np.random.normal(0, random, 1).item()
+                    s1 = np.random.normal(0, random, 1).item()
+
+
+                keypoint_u = scale_x*(data_json["Info"][img]['keypoints'][i][0] + s)
+                keypoint_v = scale_y*(data_json["Info"][img]['keypoints'][i][1] + s1)
                 confidence = data_json["Info"][img]['keypoints'][i][2]
                     
                 pose[keypoint_array[i]] = [keypoint_u, keypoint_v, confidence]

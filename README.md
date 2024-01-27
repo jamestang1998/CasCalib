@@ -33,6 +33,16 @@ python run_single_view.py example_data/frames/terrace1-c0_avi/00000000.jpg examp
 ```
 The results will be in the outputs folder in the folder called "single_view_<date>_<time>"
 
+To run multiview with bundle adjustment, install pytorch3d
+'''
+pip install 'git+https://github.com/facebookresearch/pytorch3d.git@stable'
+'''
+
+Then run the multiview dataset.
+'''
+python run_multiview.py
+'''
+
 ## Single View Calibration
 
 You can run the single view calibration by simply running the following line:

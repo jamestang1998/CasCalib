@@ -3,7 +3,31 @@ import data
 from scipy import special
 import random as rand
 import json
+from scipy.optimize import linear_sum_assignment
 
+def dictionary_to_array(my_dict):
+    result_array = []
+    for key, value_list in my_dict.items():
+        for value in value_list:
+            result_array.append([key, value])
+    return result_array
+
+def normalize_data_median(data):
+    """
+    Normalize a NumPy array of data by subtracting the median and dividing by the median absolute deviation (MAD).
+
+    Parameters:
+    data (numpy.ndarray): The input data array to be normalized.
+
+    Returns:
+    numpy.ndarray: The normalized data array.
+    """
+    median = np.median(data)
+    mad = np.median(np.abs(data - median))
+    
+    normalized_data = (data - median) / mad
+    
+    return normalized_data
 
 def random_combination(image_index, num_points, termination_cond):
     '''
@@ -25,7 +49,131 @@ def random_combination(image_index, num_points, termination_cond):
 
     return list(samples)
 
+def hungarian_match_distance(x, y):
+    """Chamfer distance between two point clouds
+    Parameters
+    ----------
+    x: numpy array [n_points_x, n_dims]
+        first point cloud
+    y: numpy array [n_points_y, n_dims]
+        second point cloud
+    metric: string or callable, default ‘l2’
+        metric to use for distance computation. Any metric from scikit-learn or scipy.spatial.distance can be used.
+    direction: str
+        direction of Chamfer distance.
+            'y_to_x':  computes average minimal distance from every point in y to x
+            'x_to_y':  computes average minimal distance from every point in x to y
+            'bi': compute both
+    Returns
+    -------
+    chamfer_dist: float
+        computed bidirectional Chamfer distance:
+            sum_{x_i \in x}{\min_{y_j \in y}{||x_i-y_j||**2}} + sum_{y_j \in y}{\min_{x_i \in x}{||x_i-y_j||**2}}
+    """
 
+    A = {}
+
+    for subarray in x:
+        key = subarray[0]
+        value = subarray[1]
+        
+        # Check if the key is already in the dictionary
+        if key in A:
+            # If it is, append the value to the existing list
+            A[key].append(value)
+        else:
+            # If not, create a new list with the value
+            A[key] = [value]
+    
+    B = {}
+
+    for subarray in y:
+        key = subarray[0]
+        value = subarray[1]
+        
+        # Check if the key is already in the dictionary
+        if key in B:
+            # If it is, append the value to the existing list
+            B[key].append(value)
+        else:
+            # If not, create a new list with the value
+            B[key] = [value]
+    
+    A, B = merge_dicts_with_defaults(A, B)
+    A_time = list(A.keys())
+    B_time = list(B.keys())
+
+    common_time = list(set(A_time) & set(B_time))
+    # INCOPORATE TIME !!!
+    error_array = []
+    for i in common_time:
+        #print(A[i], B[i])
+        matched_A, matched_B, row_ind, col_ind = hungarian_assignment(np.array(A[i]), np.array(B[i]))
+        error = np.mean(np.absolute(np.array(matched_A) - np.mean(matched_B)))
+        error_array.append(error)
+
+    return np.mean(error_array), A, B
+
+def hungarian_assignment(A, B):
+    
+    # Calculate the pairwise distances
+    distances = np.zeros((len(A), len(B)))
+    for i in range(len(A)):
+        for j in range(len(B)):
+            distances[i,j] = np.linalg.norm(A[i] - B[j])
+
+    # Use the Hungarian algorithm to find the optimal assignment
+    row_ind, col_ind = linear_sum_assignment(distances)
+
+    # Extract the matched elements from Array A and the corresponding elements from Array B
+    matched_A = A[row_ind]
+    matched_B = B[col_ind]
+
+    # Find the unmatched elements in Array B
+    #unmatched_B = np.delete(B, col_ind, axis=0)
+
+    return matched_A, matched_B, row_ind, col_ind
+
+def merge_dicts_with_defaults(dict1, dict2):
+    # Get the minimum and maximum keys from both dictionaries
+    min_key_dict1 = min(dict1.keys())
+    max_key_dict1 = max(dict1.keys())
+    min_key_dict2 = min(dict2.keys()) 
+    max_key_dict2 = max(dict2.keys())
+
+    # Determine the range of keys to consider
+    min_key = int(min(min_key_dict1, min_key_dict2))
+    max_key = int(max(max_key_dict1, max_key_dict2))
+    #print(min_key, max_key, " THE KEYS")
+
+    # Initialize new dictionaries
+    result_dict1 = {}
+    result_dict2 = {}
+
+    # Iterate through the range of keys
+    last_value1 = None
+    last_value2 = None
+
+    for key in range(min_key, max_key + 1):
+        if key in dict1:
+            result_dict1[key] = dict1[key]
+            last_value1 = dict1[key]
+        else:
+            if key < min_key_dict1 or key > max_key_dict1:
+                result_dict1[key] = dict1[min_key_dict1] if key < min_key_dict1 else dict1[max_key_dict1]
+            else:
+                result_dict1[key] = last_value1
+
+        if key in dict2:
+            result_dict2[key] = dict2[key]
+            last_value2 = dict2[key]
+        else:
+            if key < min_key_dict2 or key > max_key_dict2:
+                result_dict2[key] = dict2[min_key_dict2] if key < min_key_dict2 else dict2[max_key_dict2]
+            else:
+                result_dict2[key] = last_value2
+
+    return result_dict1, result_dict2
 
 def get_ankles_heads(datastore, image_index):
     '''

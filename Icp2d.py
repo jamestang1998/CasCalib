@@ -322,3 +322,40 @@ def interpolate(data, min_size = 2):
         points_dict[t] = {'points': points_array, "frame": frame_array, 'points_actual': points_actual_array, 'frame_actual': frame_actual_array}
 
     return points_dict
+
+def get_track(data, min_size = 2):
+    
+    print(data)
+
+    mean_array = []
+    track_dict = {}
+    for fr in list(data.keys()):
+        print(data[fr], " THE DATA")
+        for tr in list(data[fr].keys()):
+            
+            mean_array.append(data[fr][tr][0:2])
+            if tr in track_dict: 
+                track_dict[tr].append({'frame': fr, 'coord': data[fr][tr][0:2]})
+            else:
+                track_dict[tr] = [{'frame': fr, 'coord': data[fr][tr][0:2]}]
+
+    mean_center = np.mean(mean_array, axis = 0)
+    points_dict = {}
+    for t in track_dict.keys():
+        
+        points_array = []
+        frame_array = []
+        frame_actual_array = []
+        points_actual_array = []
+            
+        for i in range(len(track_dict[t])):
+
+            points_array.append(track_dict[t][i]['coord'] - mean_center)
+            frame_array.append(track_dict[t][i]['frame'])
+
+            points_actual_array.append(track_dict[t][i]['coord'] - mean_center)
+            frame_actual_array.append(track_dict[t][i]['frame'])
+        
+        points_dict[t] = {'points': points_array, "frame": frame_array, 'points_actual': points_actual_array, 'frame_actual': frame_actual_array}
+        #print(t, points_dict[t]," HIIIIIIIIIIIIIIIIIIIASDDDDDDDDDDDDDDDDDDDDDDDDDDD")
+    return points_dict

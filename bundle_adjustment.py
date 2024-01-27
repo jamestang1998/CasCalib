@@ -836,6 +836,8 @@ def match_3d_plotly_input2d_farthest_point(peturb_extrinsics_array, peturb_singl
                 
                 sync_ind = col_ind[r_ind]
                 ref_ind = row_ind[r_ind]
+                #index_dict[i1].append(torch.tensor(list(poses_array_ref[ref_ind].values())[:-1]))
+                #index_dict[i2].append(torch.tensor(list(poses_array_sync[sync_ind].values())[:-1]))
                 index_dict[i1].append(torch.tensor(list(poses_array_ref[ref_ind].values())[:-1]))
                 index_dict[i2].append(torch.tensor(list(poses_array_sync[sync_ind].values())[:-1]))
 

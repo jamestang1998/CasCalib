@@ -64,6 +64,8 @@ def evaluate_relative(cam_intrinsics_array, cam_axis, cam_position, intrinsic_ar
         results_extriniscs_tsai.append(tsai_angle)
 
         relative_angle_array.append(np.absolute(pred_angle - tsai_angle))
+    '''
+    #print(output_path + data, " output_path + data")
     
     with open(output_path + data + '.csv','w') as file:
 
@@ -81,7 +83,7 @@ def evaluate_relative(cam_intrinsics_array, cam_axis, cam_position, intrinsic_ar
     
     #return np.mean(results_focal_pred_array), np.mean(results_focal_tsai_array), np.mean(angle_diff_array), np.mean(error_npjpe_array), np.mean(focal_error_array), np.mean(results_position_diff_array)
     print(results_position_diff, " result pos diff !!!!!!!!!!!!")
-
+    '''
     return results_focal_pred, results_focal_tsai, np.mean(relative_angle_array), np.mean(focal_percentage), np.mean(results_position_diff)
 
 def get_tsai(tsai_path, tsai_intrinsics_path, terrace_tsai_cal):
