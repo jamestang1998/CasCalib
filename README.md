@@ -1,6 +1,7 @@
-## CasCalib : cascaded calibration for motion capture from sparse unsynchronized cameras
-
-# [Thesis](https://open.library.ubc.ca/soa/cIRcle/collections/ubctheses/24/items/1.0437869) | [Mirror-Aware Neural Humans](https://arxiv.org/abs/2309.04750)
+# CasCalib : cascaded calibration for motion capture from sparse unsynchronized cameras
+## [Technical report](https://open.library.ubc.ca/soa/cIRcle/collections/ubctheses/24/items/1.0437869)
+>**CasCalib**\
+>[James Tang](https://www.linkedin.com/in/james-tang-279332196/?originalSubdomain=ca), [Shashwat Suri](https://www.linkedin.com/in/shashwat-suri-88807a13b/), [Daniel Ajisafe](https://danielajisafe.github.io/), [Bastian Wandt](https://bastianwandt.de/), and [Helge Rhodin](http://helge.rhodin.de/)
 
 Use the Functions in the following order in order to get multiview camera calibrations from human pose detections. You can see how this works in __main__.py within CasCalib.
 
@@ -25,6 +26,7 @@ Install Requirements.
 ```
 pip install -r requirements.txt
 ```
+Note that `pip install torch` in requirement.txt file may install a newer version with bugs. You could try `pip install torch==2.0.0` or specify the version that matches your CUDA environment if this command does not work for you.
 
 # Step 4
 run demo for single view calibration.
