@@ -10,7 +10,7 @@ Use the Functions in the following order in order to get multiview camera calibr
 # Step 1
 Clone repository.
 ```
-git clone https://github.com/tangytoby/CasCalib.git
+git clone https://github.com/jamestang1998/CasCalib.git
 cd CasCalib
 ```
 
